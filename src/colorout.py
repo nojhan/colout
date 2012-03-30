@@ -8,6 +8,7 @@
 #    colorout /home/[a-z]+ magenta < /etc/passwd
 #    ls -l | colorout .\(r.-\){3} yellow standard
 #    make 2>&1 | colorout [0-9]+ green | colorout error
+#    make 2>&1 | colorout [0-9]+ yellow standard | colorout error | colorout warning magenta | colorout \(note\)\|\(#pragma\\s+\) green standard
 ############################################################################################
 
 import re
@@ -64,7 +65,7 @@ if __name__ == "__main__":
 
     nargs = len(sys.argv)
 
-    if nargs <= 1 or nargs >= 4:
+    if nargs <= 1 or nargs >= 5:
         msg = "Usage: colorout pattern [color] [style]"
         msg += "\n\tAvailable colors: "+" ".join(colors)
         msg += "\n\tAvailable styles: "+" ".join(styles)

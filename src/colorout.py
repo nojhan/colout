@@ -1,12 +1,23 @@
 #!/usr/bin/env python3
 #encoding: utf-8
 
+############################################################################################
+# Ce script permet de colorier chaque occurence d'un pattern provenant de l'entrée standard.
+# Exemples d'utilisation:
+#    cat colorout.py | colorout color red bold
+#    colorout /home/[a-z]+ magenta < /etc/passwd
+#    ls -l | colorout .\(r.-\){3} yellow standard
+#    make 2>&1 | colorout [0-9]+ green | colorout error
+############################################################################################
+
 import re
 
 styles = {"standard":0, "bold":1, "reverse":2}
 colors = {"black":30, "red":31, "green":32, "yellow":33, "blue":34, "magenta":35, "cyan":36, "white":37}
 
 def colored( text, pattern, color, style = "standard" ):
+    """Formatte chaque occurence de l'expression régulière 'pattern' dans 'text' avec la couleur et le style indiqué,
+       en utilisant les séquences d'échappement ANSI appropriés."""
 
     # Caractères spéciaux.
     start = "\033["
@@ -53,10 +64,11 @@ if __name__ == "__main__":
 
     nargs = len(sys.argv)
 
-    if nargs < 1 or nargs > 4:
-        print("Usage: colorout pattern [color] [style]")
-        print("\tAvailable colors:"," ".join(colors))
-        print("\tAvailable styles:"," ".join(styles))
+    if nargs <= 1 or nargs >= 4:
+        msg = "Usage: colorout pattern [color] [style]"
+        msg += "\n\tAvailable colors: "+" ".join(colors)
+        msg += "\n\tAvailable styles: "+" ".join(styles)
+        sys.exit(msg)
     else:
         if nargs > 1:
              pattern = sys.argv[1]

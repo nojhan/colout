@@ -1,59 +1,63 @@
 #!/usr/bin/env python3
 #encoding: utf-8
 
-############################################################################################
-# Ce script permet de colorier chaque occurence d'un pattern provenant de l'entrée standard.
-# Exemples d'utilisation:
-#    cat colorout.py | colorout color red bold
-#    colorout /home/[a-z]+ magenta < /etc/passwd
-#    ls -l | colorout .\(r.-\){3} yellow standard
-#    make 2>&1 | colorout [0-9]+ green | colorout error
-#    make 2>&1 | colorout [0-9]+ yellow standard | colorout error | colorout warning magenta | colorout \(note\)\|\(#pragma\\s+\) green standard
-############################################################################################
-
 import re
 
 styles = {"standard":0, "bold":1, "reverse":2}
 colors = {"black":30, "red":31, "green":32, "yellow":33, "blue":34, "magenta":35, "cyan":36, "white":37}
 
-def colored( text, pattern, color, style = "standard" ):
-    """Formatte chaque occurence de l'expression régulière 'pattern' dans 'text' avec la couleur et le style indiqué,
-       en utilisant les séquences d'échappement ANSI appropriés."""
 
-    # Caractères spéciaux.
+def colorin( text, color, style ):
+    """Return the given text, surrounded by the given color ASCII markers."""
+    # Special characters.
     start = "\033["
     stop = "\033[0m"
-
-    # Conversion en string du code couleur demandé.
+    
+    # Convert the color code.
     cs = str(styles[style])
     cc = str(colors[color])
 
-    # Compilation de l'expression régulière.
+    return start + cs + ";" + cc + "m" + text + stop
+
+
+def colorout( text, match, prev_end, color, style, group=0 ):
+    """Build the text from the previous match to the current one, coloring up the matching characters."""
+    start = match.start(group)
+    colored_text = text[prev_end:start]
+    end = match.end(group)
+    colored_text += colorin(text[start:end], color, style)
+    return colored_text,end
+
+
+def colorup( text, pattern, color, style = "standard" ):
+    """Color up every characters that match the given patterns.
+    If groups are specified, only color up them and not the whole pattern."""
     regex = re.compile(pattern, re.IGNORECASE)
 
-    # Texte colorié.
-    ctext = ""
-    e = 0
-    # Pour chaque occurence d'une correspondance dans le texte.
+    # Prepare the colored text.
+    colored_text = ""
+    end = 0
     for match in regex.finditer(text):
-
-        # Position dans text du début de l'occurence.
-        s = match.start()
-
-        # On ajoute le texte entre la dernière occurence,,
-        # il faut noter que e=0, à la première itération.
-        ctext += text[e:s]
         
-        # Position dans text de la fin de l'occurence.
-        e = match.end()
+        # If not groups are specified
+        if not match.groups():
+            # Color the previous partial line,
+            partial,end = colorout( text, match, end, color, style )
+            # add it to the final text.
+            colored_text += partial
+        else:
+            # For each group index.
+            # Note that match.groups returns a tuple (thus being indexed in [0,n[),
+            # but that match.start(0) refers to the whole match, the groups being indexed in [1,n].
+            # Thus, we need to range in [1,n+1[.
+            for group in range(1,len(match.groups())+1):
+                partial,end = colorout( text, match, end, color, style, group )
+                colored_text += partial
+   
+    # Append the remaining part of the text, if any.
+    colored_text += text[end:]
 
-        # On ajoute l'occurence, en colorant.
-        ctext += start + cs + ";" + cc + "m" + text[s:e] + stop
-    
-    # On ajoute la fin du texte.
-    ctext += text[e:]
-
-    return ctext
+    return colored_text
 
 
 if __name__ == "__main__":
@@ -79,5 +83,5 @@ if __name__ == "__main__":
             style = sys.argv[3]
 
     for line in sys.stdin:
-        print( colored( line, pattern, color, style ), end="" )
+        print( colorup( line, pattern, color, style ), end="" )
 

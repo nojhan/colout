@@ -1,10 +1,61 @@
-Color Up Arbitrary Command Ouput
+colout(1) -- Color Up Arbitrary Command Ouput
+=============================================
 
-A regular expression based formatter that color up an arbitrary text output stream.
-Examples :
-   cat colout.py | colout color red bold
-   colout /home/[a-z]+ magenta < /etc/passwd
-   ls -l | colout .\(r.-\){3} yellow standard
-   make 2>&1 | colout [0-9]+ green | colout error
-   make 2>&1 | colout [0-9]+ yellow standard | colout error | colout warning magenta | colout \(note\)\|\(#pragma\\s+\) green standard
+## SYNOPSIS
+
+`colout` [-h] [-e] PATTERN [COLOR] [STYLE]
+
+
+## DESCRIPTION
+
+`colout` read lines of text stream on the standard input and output characters 
+matching a given regular expression <PATTERN> in given <COLOR> and <STYLE>.
+
+If groups are specified in the regular expression pattern, only them are taken
+into account, else the whole matching pattern is colored.
+
+Available colors are: blue black yellow cyan green magenta white red.
+Available styles are: reverse bold standard.
+
+When not specified, <COLOR> defaults to _red_ and <STYLE> defaults to _bold_.
+
+
+## OPTIONS
+
+* `-h`, `--help`:
+  Show an help message and exit
+
+* `-e`, `--stderr`:
+  Output on the standard error instead of standard output.
+
+
+## REGULAR EXPRESSIONS
+
+A regular expression (or _regex_) is a pattern that describes a set of strings
+that matches it. 
+
+`colout` understands regex as specifed in the _re_ python module. Given that
+`colout` is generally called by the command line, you may have to escape 
+special characters that would be recognize by your shell.
+
+
+## EXAMPLES
+
+* Color in bold red every occurence of the word _color_ in colout sources:
+  cat colout.py | colout color red bold
+
+* Color in bold magenta home directories in _/etc/passwd_:
+  colout /home/[a-z]+ magenta < /etc/passwd
+
+* Color in yellow file permissions with read rights for everyone:
+  ls -l | colout .\(r.-\){3} yellow standard
+
+* Color in green comments in colout sources
+  colout .*\(#.*\)$ green standard < colout.py
+
+* Color in bold green every numbers and in bold red the words _error_ in make output:
+  make 2>&1 | colout [0-9]+ green standard | colout error
+
+* Color a make output, line numbers in yellow, errors in bold red, warning in magenta, pragma in green and C++ file base names in cyan:
+  make 2>&1 | colout :\([0-9]+\):[0-9]* yellow standard | colout error | colout warning magenta | colout pragma green standard | colout /\(\\w+\)*\.\(h\|cpp\) cyan standard
 

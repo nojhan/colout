@@ -1,1 +1,10 @@
 Color Up Arbitrary Command Ouput
+
+A regular expression based formatter that color up an arbitrary text output stream.
+Examples :
+   cat colout.py | colout color red bold
+   colout /home/[a-z]+ magenta < /etc/passwd
+   ls -l | colout .\(r.-\){3} yellow standard
+   make 2>&1 | colout [0-9]+ green | colout error
+   make 2>&1 | colout [0-9]+ yellow standard | colout error | colout warning magenta | colout \(note\)\|\(#pragma\\s+\) green standard
+

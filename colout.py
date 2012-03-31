@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 #encoding: utf-8
 
+# Color Up Arbitrary Command Ouput 
+# Licensed under the GPL version 3
+# 2012 (c) nojhan <nojhan@gmail.com>
+
 import re
 
 styles = {"standard":0, "bold":1, "reverse":2}

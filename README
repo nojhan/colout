@@ -19,6 +19,7 @@ Available styles are: reverse bold standard.
 
 When not specified, <COLOR> defaults to _red_ and <STYLE> defaults to _bold_.
 
+`colout` is released under the GNU Public License v3.
 
 ## OPTIONS
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #encoding: utf-8
 
 import re
@@ -62,26 +62,32 @@ def colorup( text, pattern, color, style = "standard" ):
 
 if __name__ == "__main__":
     import sys
+    import argparse
 
-    pattern = ".*"
-    color= "red"
-    style = "bold"
+    parser = argparse.ArgumentParser(
+        description="A regular expression based formatter that color up an arbitrary text output stream.")
 
-    nargs = len(sys.argv)
+    parser.add_argument("pattern", metavar="REGEX", type=str, nargs=1,
+            help="A regular expression")
 
-    if nargs <= 1 or nargs >= 5:
-        msg = "Usage: colorout pattern [color] [style]"
-        msg += "\n\tAvailable colors: "+" ".join(colors)
-        msg += "\n\tAvailable styles: "+" ".join(styles)
-        sys.exit(msg)
-    else:
-        if nargs > 1:
-             pattern = sys.argv[1]
-        if nargs > 2:
-            color = sys.argv[2]
-        if nargs > 3:
-            style = sys.argv[3]
+    parser.add_argument("color", metavar="COLOR", type=str, nargs='?',
+            default="red",
+            help="One of the following colors: "+" ".join(colors), choices = colors)
+
+    parser.add_argument("style", metavar="STYLE", type=str, nargs='?',
+            default="bold",
+            help="One of the following styles: "+" ".join(styles), choices=styles)
+
+    parser.add_argument("-e", "--stderr", action="store_true",
+            help="Output on the stderr instead of stdout")
+
+    args = parser.parse_args()
 
     for line in sys.stdin:
-        print( colorup( line, pattern, color, style ), end="" )
+        if not args.stderr:
+            print colorup( line, args.pattern[0], args.color, args.style ),
+            sys.stdout.flush()
+        else:
+            print >> sys.stderr, colorup( line, args.pattern[0], args.color, args.style ),
+            sys.stderr.flush()
 

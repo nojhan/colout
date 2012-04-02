@@ -70,12 +70,16 @@ def colorup( text, pattern, color, style = "standard" ):
             colors_l = color.split(",")
             group_colors = colors_l + [colors_l[-1]] * (nb_groups - len(colors_l))
 
+            # Same for styles
+            styles_l = style.split(",")
+            group_styles = styles_l + [styles_l[-1]] * (nb_groups - len(styles_l))
+
             # For each group index.
             # Note that match.groups returns a tuple (thus being indexed in [0,n[),
             # but that match.start(0) refers to the whole match, the groups being indexed in [1,n].
             # Thus, we need to range in [1,n+1[.
             for group in range(1,nb_groups+1):
-                partial,end = colorout( text, match, end, group_colors[group-1], style, group )
+                partial,end = colorout( text, match, end, group_colors[group-1], group_styles[group-1], group )
                 colored_text += partial
    
     # Append the remaining part of the text, if any.
@@ -94,14 +98,13 @@ if __name__ == "__main__":
     parser.add_argument("pattern", metavar="REGEX", type=str, nargs=1,
             help="A regular expression")
 
-    colors_range = colors_mode8.keys() + [str(i) for i in range(255)]
     parser.add_argument("color", metavar="COLOR", type=str, nargs='?',
             default="red",
-            help="A number in [0…255] or one of the following colors: "+" ".join(colors_mode8) )#, choices = colors_range )
+            help="A number in [0…255] or one of the following colors: "+" ".join(colors_mode8) )
 
     parser.add_argument("style", metavar="STYLE", type=str, nargs='?',
             default="bold",
-            help="One of the following styles: "+" ".join(styles), choices=styles)
+            help="One of the following styles: "+" ".join(styles) )
 
     parser.add_argument("-e", "--stderr", action="store_true",
             help="Output on the stderr instead of stdout")

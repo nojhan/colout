@@ -53,8 +53,8 @@ special characters that would be recognize by your shell.
 * Color in bold red every occurence of the word _color_ in colout sources:
   cat colout.py | colout color red bold
 
-* Color in bold magenta home directories in _/etc/passwd_:
-  colout /home/[a-z]+ magenta < /etc/passwd
+* Color in bold violet home directories in _/etc/passwd_:
+  colout /home/[a-z]+ 135 < /etc/passwd
 
 * Color in yellow user/groups id, in bold green name and in bold red home directories in _/etc/passwd_:
   colout :x:\([0-9]+:[0-9]+\):\([a-z]+\).*\(/home/[a-z]+\) yellow,green,red normal,bold < /etc/passwd
@@ -68,12 +68,11 @@ special characters that would be recognize by your shell.
 * Color in green comments in colout sources:
   colout .*\(#.*\)$ green normal < colout.py
   
-* Color in green comments in non-empty colout sources, with the sharp in bold:
-  grep -v ^\\s*$ colout.py | colout .*\(#\)\(.*\)$ green bold,normal
+* Color in light green comments in non-empty colout sources, with the sharp in bold green:
+  grep -v ^\\s*$ colout.py | colout .*\(#\)\(.*\)$ green,119 bold,normal
 
 * Color in bold green every numbers and in bold red the words _error_ in make output:
   make 2>&1 | colout [0-9]+ green normal | colout error
-
 
 * Color a make output, line numbers in yellow, errors in bold red, warning in magenta, pragma in green and C++ file base names in cyan:
   make 2>&1 | colout :\([0-9]+\):[0-9]* yellow normal | colout error | colout warning magenta | colout pragma green normal | colout /\(\\w+\)*\.\(h\|cpp\) cyan normal

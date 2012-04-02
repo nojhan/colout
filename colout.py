@@ -7,8 +7,10 @@
 
 import re
 
-styles = {"standard":0, "bold":1, "reverse":2}
-colors = {"black":30, "red":31, "green":32, "yellow":33, "blue":34, "magenta":35, "cyan":36, "white":37}
+styles = {"standard":0, "bold":1, "faint":2, "italic":3, "underline":4, "blink":5, "rapid_blink":6,
+"reverse":7, "conceal":8 }
+colors_mode8 = {"black":0, "red":1, "green":2, "yellow":3, "blue":4, "magenta":5, "cyan":6, "white":7}
+modes = {8:";", 256:";38;5;"}
 
 
 def colorin( text, color, style ):
@@ -16,12 +18,21 @@ def colorin( text, color, style ):
     # Special characters.
     start = "\033["
     stop = "\033[0m"
-    
+   
     # Convert the color code.
     cs = str(styles[style])
-    cc = str(colors[color])
 
-    return start + cs + ";" + cc + "m" + text + stop
+    # 8 colors modes
+    if color in colors_mode8: 
+        mode = 8
+        cc = str( 30 + colors_mode8[color] )
+    
+    # 256 colors mode
+    else: 
+        mode = 256
+        cc = str( color ) 
+
+    return start + cs + modes[mode] + cc + "m" + text + stop
 
 
 def colorout( text, match, prev_end, color, style, group=0 ):
@@ -29,7 +40,8 @@ def colorout( text, match, prev_end, color, style, group=0 ):
     start = match.start(group)
     colored_text = text[prev_end:start]
     end = match.end(group)
-    colored_text += colorin(text[start:end], color, style)
+
+    colored_text += colorin(text[start:end], color, style )
     return colored_text,end
 
 
@@ -49,13 +61,21 @@ def colorup( text, pattern, color, style = "standard" ):
             partial,end = colorout( text, match, end, color, style )
             # add it to the final text.
             colored_text += partial
+
         else:
+            nb_groups = len(match.groups())
+
+            # Build a list of colors that match the number of grouped,
+            # if there is not enough colors, duplicate the last one.
+            colors_l = color.split(",")
+            group_colors = colors_l + [colors_l[-1]] * (nb_groups - len(colors_l))
+
             # For each group index.
             # Note that match.groups returns a tuple (thus being indexed in [0,n[),
             # but that match.start(0) refers to the whole match, the groups being indexed in [1,n].
             # Thus, we need to range in [1,n+1[.
-            for group in range(1,len(match.groups())+1):
-                partial,end = colorout( text, match, end, color, style, group )
+            for group in range(1,nb_groups+1):
+                partial,end = colorout( text, match, end, group_colors[group-1], style, group )
                 colored_text += partial
    
     # Append the remaining part of the text, if any.
@@ -74,9 +94,10 @@ if __name__ == "__main__":
     parser.add_argument("pattern", metavar="REGEX", type=str, nargs=1,
             help="A regular expression")
 
+    colors_range = colors_mode8.keys() + [str(i) for i in range(255)]
     parser.add_argument("color", metavar="COLOR", type=str, nargs='?',
             default="red",
-            help="One of the following colors: "+" ".join(colors), choices = colors)
+            help="A number in [0…255] or one of the following colors: "+" ".join(colors_mode8) )#, choices = colors_range )
 
     parser.add_argument("style", metavar="STYLE", type=str, nargs='?',
             default="bold",

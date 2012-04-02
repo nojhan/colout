@@ -7,7 +7,7 @@
 
 import re
 
-styles = {"standard":0, "bold":1, "faint":2, "italic":3, "underline":4, "blink":5, "rapid_blink":6,
+styles = {"normal":0, "bold":1, "faint":2, "italic":3, "underline":4, "blink":5, "rapid_blink":6,
 "reverse":7, "conceal":8 }
 colors_mode8 = {"black":0, "red":1, "green":2, "yellow":3, "blue":4, "magenta":5, "cyan":6, "white":7}
 modes = {8:";", 256:";38;5;"}
@@ -45,7 +45,7 @@ def colorout( text, match, prev_end, color, style, group=0 ):
     return colored_text,end
 
 
-def colorup( text, pattern, color, style = "standard" ):
+def colorup( text, pattern, color, style = "normal" ):
     """Color up every characters that match the given patterns.
     If groups are specified, only color up them and not the whole pattern."""
     regex = re.compile(pattern, re.IGNORECASE)

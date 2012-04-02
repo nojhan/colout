@@ -3,7 +3,7 @@ colout(1) -- Color Up Arbitrary Command Ouput
 
 ## SYNOPSIS
 
-`colout` [-h] [-e] PATTERN [COLOR] [STYLE]
+`colout` [-h] [-e] PATTERN [COLOR(S)] [STYLE(S)]
 
 
 ## DESCRIPTION
@@ -14,10 +14,18 @@ matching a given regular expression <PATTERN> in given <COLOR> and <STYLE>.
 If groups are specified in the regular expression pattern, only them are taken
 into account, else the whole matching pattern is colored.
 
-Available colors are: blue black yellow cyan green magenta white red.
-Available styles are: reverse bold standard.
+You can specify severall colors or styles when using groups by separating them
+with commas. If you indicate more colors than groups, the last ones will be ignored.
+If you ask for less colors, the last one will be duplicated across remaining
+groups.
 
-When not specified, <COLOR> defaults to _red_ and <STYLE> defaults to _bold_.
+Available colors are: blue, black, yellow, cyan, green, magenta, white, red or 
+any number between 0 and 255.
+
+Available styles are: normal, bold, faint, italic, underline, blink, 
+rapid_blink, reverse, conceal.
+
+When not specified, a <COLOR> defaults to _red_ and a <STYLE> defaults to _bold_.
 
 `colout` is released under the GNU Public License v3.
 
@@ -48,15 +56,25 @@ special characters that would be recognize by your shell.
 * Color in bold magenta home directories in _/etc/passwd_:
   colout /home/[a-z]+ magenta < /etc/passwd
 
-* Color in yellow file permissions with read rights for everyone:
-  ls -l | colout .\(r.-\){3} yellow standard
+* Color in yellow user/groups id, in bold green name and in bold red home directories in _/etc/passwd_:
+  colout :x:\([0-9]+:[0-9]+\):\([a-z]+\).*\(/home/[a-z]+\) yellow,green,red normal,bold < /etc/passwd
 
-* Color in green comments in colout sources
-  colout .*\(#.*\)$ green standard < colout.py
+* Color in yellow file permissions with read rights for everyone:
+  ls -l | colout .\(r.-\){3} yellow normal
+
+* Color in green read permission, in bold red write and execution ones:
+  ls -l | colout \(r\)\(w*\)\(x*\) green,red normal,bold
+
+* Color in green comments in colout sources:
+  colout .*\(#.*\)$ green normal < colout.py
+  
+* Color in green comments in non-empty colout sources, with the sharp in bold:
+  grep -v ^\\s*$ colout.py | colout .*\(#\)\(.*\)$ green bold,normal
 
 * Color in bold green every numbers and in bold red the words _error_ in make output:
-  make 2>&1 | colout [0-9]+ green standard | colout error
+  make 2>&1 | colout [0-9]+ green normal | colout error
+
 
 * Color a make output, line numbers in yellow, errors in bold red, warning in magenta, pragma in green and C++ file base names in cyan:
-  make 2>&1 | colout :\([0-9]+\):[0-9]* yellow standard | colout error | colout warning magenta | colout pragma green standard | colout /\(\\w+\)*\.\(h\|cpp\) cyan standard
+  make 2>&1 | colout :\([0-9]+\):[0-9]* yellow normal | colout error | colout warning magenta | colout pragma green normal | colout /\(\\w+\)*\.\(h\|cpp\) cyan normal
 

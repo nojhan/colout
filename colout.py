@@ -111,11 +111,17 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    for line in sys.stdin:
-        if not args.stderr:
-            print colorup( line, args.pattern[0], args.color, args.style ),
-            sys.stdout.flush()
-        else:
-            print >> sys.stderr, colorup( line, args.pattern[0], args.color, args.style ),
-            sys.stderr.flush()
+    while True:
+        line = sys.stdin.readline()
+        if line == '':
+            break
+        try:
+            if not args.stderr:
+                print colorup( line, args.pattern[0], args.color, args.style ),
+                sys.stdout.flush()
+            else:
+                print >> sys.stderr, colorup( line, args.pattern[0], args.color, args.style ),
+                sys.stderr.flush()
+        except:
+            pass
 

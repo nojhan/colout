@@ -19,11 +19,11 @@ with commas. If you indicate more colors than groups, the last ones will be igno
 If you ask for less colors, the last one will be duplicated across remaining
 groups.
 
-Available colors are: blue, black, yellow, cyan, green, magenta, white, red or 
-any number between 0 and 255.
+Available colors are: blue, black, yellow, cyan, green, magenta, white, red,
+rainbow, random, or any number between 0 and 255.
 
-Available styles are: normal, bold, faint, italic, underline, blink, 
-rapid_blink, reverse, conceal.
+Available styles are: normal, bold, faint, italic, underline, blink,
+rapid_blink, reverse, conceal or random.
 
 When not specified, a *COLOR* defaults to _red_ and a *STYLE* defaults to _bold_.
 
@@ -55,6 +55,9 @@ special characters that would be recognize by your shell.
 
 * Color in bold violet home directories in _/etc/passwd_:
   `colout /home/[a-z]+ 135 < /etc/passwd`
+
+* Use a different color for each line of the auth log
+  `grep user /var/log/auth.log | colout "^.*$" rainbow`
 
 * Color in yellow user/groups id, in bold green name and in bold red home directories in _/etc/passwd_:
   `colout :x:\([0-9]+:[0-9]+\):\([a-z]+\).*\(/home/[a-z]+\) yellow,green,red normal,bold < /etc/passwd`

@@ -3,10 +3,10 @@
 
 # Color Up Arbitrary Command Ouput 
 # Licensed under the GPL version 3
-# 2012 (c) nojhan <nojhan@gmail.com>
+# 2012 (c) nojhan <nojhan@nojhan.net>
 
 import re
-
+import random
 
 ###########
 # Library #
@@ -24,6 +24,9 @@ colors = {
     "black":0, "red":1, "green":2, "yellow":3, "blue":4,
     "magenta":5, "cyan":6, "white":7
 }
+
+rainbow = [ "red", "yellow", "green", "cyan", "blue", "magenta" ]
+rainbow_idx = 0
 
 # Escaped end markers for given color modes
 endmarks = {8:";", 256:";38;5;"}
@@ -45,22 +48,42 @@ def colorin( text, color = "red", style = "normal" ):
     # Special characters.
     start = "\033["
     stop = "\033[0m"
-   
+
     # Convert the style code
-    assert( style in styles )
+    if style == "random":
+        style = random.choice(list(styles.keys()))
+    else:
+        assert( style in styles)
+
     style_code = str(styles[style])
 
+    if color == "random":
+        mode = 8
+        color_code = random.choice(list(colors.values()))
+        color_code = str( 30 + color_code )
+
+    elif color == "rainbow":
+        global rainbow_idx
+        mode = 8
+        color = rainbow[rainbow_idx]
+        color_code = str( 30 + colors[color] )
+
+        if rainbow_idx < len(rainbow)-1:
+            rainbow_idx += 1
+        else:
+            rainbow_idx = 0
+
     # 8 colors modes
-    if color in colors: 
+    elif color in colors:
         mode = 8
         color_code = str( 30 + colors[color] )
-    
+
     # 256 colors mode
-    else: 
+    else:
         mode = 256
         color_nb = int( color )
         assert( 0 <= color_nb <= 255 )
-        color_code = str( color ) 
+        color_code = str( color )
 
     return start + style_code + endmarks[mode] + color_code + "m" + text + stop
 

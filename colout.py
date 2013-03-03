@@ -83,7 +83,7 @@ def colorin( text, color = "red", style = "normal" ):
         mode = 256
         color_nb = int( color )
         assert( 0 <= color_nb <= 255 )
-        color_code = str( color )
+        color_code = str( color_nb )
 
     return start + style_code + endmarks[mode] + color_code + "m" + text + stop
 

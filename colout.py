@@ -50,7 +50,7 @@ def colorin( text, color = "red", style = "normal" ):
     stop = "\033[0m"
 
     # Convert the style code
-    if style == "random":
+    if style == "random" or style == "Random":
         style = random.choice(list(styles.keys()))
     else:
         assert( style in styles)
@@ -61,6 +61,11 @@ def colorin( text, color = "red", style = "normal" ):
         mode = 8
         color_code = random.choice(list(colors.values()))
         color_code = str( 30 + color_code )
+
+    elif color == "Random":
+        mode = 256
+        color_nb = random.randint(0,255)
+        color_code = str( color_nb )
 
     elif color == "rainbow":
         global rainbow_idx

@@ -20,10 +20,13 @@ If you ask for less colors, the last one will be duplicated across remaining
 groups.
 
 Available colors are: blue, black, yellow, cyan, green, magenta, white, red,
-rainbow, random, or any number between 0 and 255.
+rainbow, random, Random or any number between 0 and 255.
 
 Available styles are: normal, bold, faint, italic, underline, blink,
 rapid_blink, reverse, conceal or random.
+
+`Random` will color each matching pattern with a random color among the 255
+available in the ANSI table. `random` will do the same in 8 colors mode.
 
 When not specified, a *COLOR* defaults to _red_ and a *STYLE* defaults to _bold_.
 

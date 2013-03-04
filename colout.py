@@ -45,6 +45,8 @@ def colorin( text, color = "red", style = "normal" ):
     >>> colout.colorin("Faites chier la vache", 41, "normal")
     '\x1b[0;38;5;41mFaites chier la vache\x1b[0m'
     """
+    global rainbow_idx
+
     # Special characters.
     start = "\033["
     stop = "\033[0m"
@@ -68,7 +70,6 @@ def colorin( text, color = "red", style = "normal" ):
         color_code = str( color_nb )
 
     elif color == "rainbow":
-        global rainbow_idx
         mode = 8
         color = rainbow[rainbow_idx]
         color_code = str( 30 + colors[color] )
@@ -106,7 +107,7 @@ def colorout( text, match, prev_end, color = "red", style = "normal", group=0 ):
     return colored_text,end
 
 
-def colorup( text, pattern, color = "red", style = "normal" ):
+def colorup( text, pattern, color = "red", style = "normal", on_groups=False ):
     """
     Color up every characters that match the given regexp patterns.
     If groups are specified, only color up them and not the whole pattern.
@@ -129,13 +130,14 @@ def colorup( text, pattern, color = "red", style = "normal" ):
     >>> colorup("Faites Chier la Vache", "([A-Z])(\S+)\s", "blue", "bold,italic")
     '\x1b[1;34mF\x1b[0m\x1b[3;34maites\x1b[0m \x1b[1;34mC\x1b[0m\x1b[3;34mhier\x1b[0m la Vache'
     """
+    global rainbow_idx
     regex = re.compile(pattern)#, re.IGNORECASE)
 
     # Prepare the colored text.
     colored_text = ""
     end = 0
     for match in regex.finditer(text):
-        
+
         # If no groups are specified
         if not match.groups():
             # Color the previous partial line,
@@ -155,6 +157,11 @@ def colorup( text, pattern, color = "red", style = "normal" ):
             styles_l = style.split(",")
             group_styles = styles_l + [styles_l[-1]] * (nb_groups - len(styles_l))
 
+            # If we want to iterate colormaps on groups instead of patterns
+            if on_groups:
+                # Reset the counter at the beginning of each match
+                rainbow_idx = 0
+
             # For each group index.
             # Note that match.groups returns a tuple (thus being indexed in [0,n[),
             # but that match.start(0) refers to the whole match, the groups being indexed in [1,n].
@@ -162,14 +169,14 @@ def colorup( text, pattern, color = "red", style = "normal" ):
             for group in range(1,nb_groups+1):
                 partial,end = colorout( text, match, end, group_colors[group-1], group_styles[group-1], group )
                 colored_text += partial
-   
+
     # Append the remaining part of the text, if any.
     colored_text += text[end:]
 
     return colored_text
 
 
-def colorgen( items, pattern, color = "red", style = "normal" ):
+def colorgen( items, pattern, color = "red", style = "normal", on_groups=False ):
     """
     A generator that colors the items given in an iterable input.
 
@@ -179,7 +186,7 @@ def colorgen( items, pattern, color = "red", style = "normal" ):
      '2.7\x1b[0;31m1\x1b[0m828\x1b[0;31m1\x1b[0m82846']
     """
     for item in items:
-        yield colorup( item, pattern, color, style )
+        yield colorup( item, pattern, color, style, on_groups )
 
 
 ######################
@@ -205,16 +212,16 @@ def __args_dirty__(argv,usage=""):
     # Use a dirty argument picker
     # Check for bad usage or an help flag 
     if    len(argv) < 2 \
-       or len(argv) > 5 \
+       or len(argv) > 6 \
        or argv[1] == "--help" \
        or argv[1] == "-h":
         print(usage+"\n")
-        print("Usage:",argv[0],"<pattern> <color(s)> [<style(s)>] [<print on stderr?>]")
+        print("Usage:",argv[0],"<pattern> <color(s)> [<style(s)>] [<print on stderr?>] [<iterate over groups?>]")
         print("\tAvailable colors:"," ".join(colors))
         print("\tAvailable styles:"," ".join(styles))
         print("Example:",argv[0],"'^(def)\s+(\w*).*$' blue,magenta italic,bold < colout.py")
         sys.exit(1)
-    
+
     assert( len(argv) >= 2 )
     # Get mandatory arguments
     pattern = argv[1]
@@ -230,8 +237,10 @@ def __args_dirty__(argv,usage=""):
             style = argv[3]
             if len(argv) == 5:
                 on_stderr = bool(argv[4])
-    
-    return pattern,color,style,on_stderr
+                if len(argv) == 6:
+                    on_groups = bool(argv[5])
+
+    return pattern,color,style,on_stderr,on_groups
 
 
 def __args_parse__(argv,usage=""):
@@ -258,9 +267,12 @@ def __args_parse__(argv,usage=""):
     parser.add_argument("-e", "--stderr", action="store_true",
             help="Output on the stderr instead of stdout")
 
+    parser.add_argument("-g", "--groups", action="store_true",
+            help="For color maps (random, rainbows), iterate over matching groups in the pattern instead of over patterns")
+
     args = parser.parse_args()
 
-    return args.pattern[0], args.color, args.style, args.stderr
+    return args.pattern[0], args.color, args.style, args.stderr, args.groups
 
 
 if __name__ == "__main__":
@@ -273,14 +285,14 @@ if __name__ == "__main__":
 
     # if argparse is not installed
     except ImportError:
-        pattern,color,style,on_stderr = __args_dirty__(sys.argv,usage)
-        
+        pattern,color,style,on_stderr,on_groups = __args_dirty__(sys.argv,usage)
+
     # if argparse is available
     else:
-        pattern,color,style,on_stderr = __args_parse__(sys.argv,usage)
+        pattern,color,style,on_stderr,on_groups = __args_parse__(sys.argv,usage)
 
     # use the generator: output lines as they come
-    for colored in colorgen( sys.stdin, pattern, color, style ):
+    for colored in colorgen( sys.stdin, pattern, color, style, on_groups ):
         if on_stderr:
             sys.stderr.write(colored)
             sys.stderr.flush()

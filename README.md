@@ -40,6 +40,9 @@ When not specified, a *COLOR* defaults to _red_ and a *STYLE* defaults to _bold_
 * `-e`, `--stderr`:
   Output on the standard error instead of standard output.
 
+* `-g`, `--groups`:
+  For color maps (like "rainbow"), iterate over matching groups in the pattern instead of over patterns.
+
 
 ## REGULAR EXPRESSIONS
 
@@ -82,4 +85,8 @@ special characters that would be recognize by your shell.
 
 * Color a make output, line numbers in yellow, errors in bold red, warning in magenta, pragma in green and C++ file base names in cyan:
   `make 2>&1 | colout :\([0-9]+\):[0-9]* yellow normal | colout error | colout warning magenta | colout pragma green normal | colout /\(\\w+\)*\.\(h\|cpp\) cyan normal`
+
+* Color each word in the head of auth.log with a rainbow color map, starting a new colormap at each new line (the
+  begining of the command is just bash magic to repeat the string "(\w+
+  `L=$(seq 10) ; P=${L//??/(\\w+)\\W+} ; head /var/log/auth.log | ./colout.py -g "^${P}(.*)$" rainbow`
 

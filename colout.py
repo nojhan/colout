@@ -297,6 +297,19 @@ def __args_parse__(argv,usage=""):
     return args.pattern[0], args.color, args.style, args.stderr, args.groups, args.colormap
 
 
+def write( colored, on_stderr=False ):
+    """
+    If on_stderr, write "colored" on sys.stderr, else write it on sys.stdout.
+    Then flush.
+    """
+    if on_stderr:
+        sys.stderr.write(colored)
+        sys.stderr.flush()
+    else:
+        sys.stdout.write(colored)
+        sys.stdout.flush()
+
+
 if __name__ == "__main__":
     import sys
 
@@ -318,10 +331,18 @@ if __name__ == "__main__":
         colormap = color.split(",")  # replace the colormap by the given colors
         color = "colormap"  # use the keyword to switch to colormap instead of list of colors
 
-    for colored in colorgen( sys.stdin, pattern, color, style, on_groups):
-        if on_stderr:
-            sys.stderr.write(colored)
-            sys.stderr.flush()
-        else:
-            sys.stdout.write(colored)
-            sys.stdout.flush()
+    themes = {}
+    import glob
+    for f in glob.iglob("colout_*.py"):
+        module = ".".join(f.split(".")[:-1])
+        name = "_".join(module.split("_")[1:])
+        themes[name] = __import__(module)
+
+    if pattern in themes.keys():
+        for item in sys.stdin:
+            colored = themes[pattern].theme(item)
+            write(colored)
+    else:
+        for colored in colorgen( sys.stdin, pattern, color, style, on_groups):
+            write(colored)
+

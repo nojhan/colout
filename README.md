@@ -32,6 +32,12 @@ available in the ANSI table. `random` will do the same in 8 colors mode.
 
 When not specified, a *COLOR* defaults to _red_ and a *STYLE* defaults to _bold_.
 
+`colout` comes with some predefined themes to rapidely color well-known outputs
+(see the `-t` switch below).
+
+If the python-pygments library is available, `colout` can be used as an interface
+to it (see the `-s` switch below).
+
 `colout` is released under the GNU Public License v3.
 
 
@@ -48,6 +54,14 @@ When not specified, a *COLOR* defaults to _red_ and a *STYLE* defaults to _bold_
 
 * `-c`, `--colormap`:
   Use the given list of comma-separated colors as a colormap (cycle the colors at each match).
+
+* `-t`, `--theme`:
+  Interpret PATTERN as a predefined theme (perm, cmake, g++, etc.)
+
+* `-s`, `--source`:
+  Interpret PATTERN as a source code readable by the Pygments library. If the first letter of PATTERN
+  is upper case, use the 256 colors mode, if it is lower case, use the 8 colors mode.
+  In 256 colors, interpret COLOR as a Pygments style (e.g. "default").
 
 
 ## REGULAR EXPRESSIONS
@@ -91,6 +105,8 @@ special characters that would be recognize by your shell.
 
 * Color a make output, line numbers in yellow, errors in bold red, warning in magenta, pragma in green and C++ file base names in cyan:
   `make 2>&1 | colout :\([0-9]+\):[0-9]* yellow normal | colout error | colout warning magenta | colout pragma green normal | colout /\(\\w+\)*\.\(h\|cpp\) cyan normal`
+  Or using themes:
+  `make 2>&³ | colout -t cmake | colout -t g++`
 
 * Color each word in the head of auth.log with a rainbow color map, starting a new colormap at each new line (the
   begining of the command is just bash magic to repeat the string "(\\w+)\\W+":
@@ -99,3 +115,8 @@ special characters that would be recognize by your shell.
 * Color each line of a file with a different color among a 256 color gradient from cyan to green:
   `head /var/log/auth.log | ./colout.py -c "^.*$" 39,38,37,36,35,34`
 
+* Color a source code in 8 colors mode:
+  `cat colout.py | grep -v "#" | colout python`
+
+* Color a source code in 256 colors mode:
+  `cat colout.py | colout Python monokai`

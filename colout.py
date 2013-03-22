@@ -235,7 +235,7 @@ def __args_dirty__(argv,usage=""):
     # Use a dirty argument picker
     # Check for bad usage or an help flag 
     if    len(argv) < 2 \
-       or len(argv) > 6 \
+       or len(argv) > 9 \
        or argv[1] == "--help" \
        or argv[1] == "-h":
         print(usage+"\n")
@@ -264,8 +264,12 @@ def __args_dirty__(argv,usage=""):
                     on_groups = bool(argv[5])
                     if len(argv) == 7:
                         as_colormap = bool(argv[6])
+                        if len(argv) == 8:
+                            as_theme = bool(argv[7])
+                            if len(argv) == 9:
+                                as_source = bool(argv[8])
 
-    return pattern,color,style,on_stderr,on_groups,as_colormap
+    return pattern,color,style,on_stderr,on_groups,as_colormap,as_theme,as_source
 
 
 def __args_parse__(argv,usage=""):
@@ -298,9 +302,18 @@ def __args_parse__(argv,usage=""):
     parser.add_argument("-c", "--colormap", action="store_true",
             help="Use the given colors as a colormap (cycle the colors at each match)")
 
+    parser.add_argument("-t", "--theme", action="store_true",
+            help="Interpret REGEX as a theme")
+
+    parser.add_argument("-s", "--source", action="store_true",
+            help="""Interpret REGEX as a source code readable by the Pygments library.
+            If the first letter of PATTERN is upper case, use the 256 colors mode,
+            if it is lower case, use the 8 colors mode.
+            In 256 colors, interpret COLOR as a Pygments style (e.g. "default").""")
+
     args = parser.parse_args()
 
-    return args.pattern[0], args.color, args.style, args.stderr, args.groups, args.colormap
+    return args.pattern[0], args.color, args.style, args.stderr, args.groups, args.colormap, args.theme, args.source
 
 
 def write( colored, on_stderr=False ):
@@ -326,17 +339,18 @@ if __name__ == "__main__":
 
     # if argparse is not installed
     except ImportError:
-        pattern,color,style,on_stderr,on_groups,as_colormap = __args_dirty__(sys.argv,usage)
+        pattern,color,style,on_stderr,on_groups,as_colormap,as_theme,as_source = __args_dirty__(sys.argv,usage)
 
     # if argparse is available
     else:
-        pattern,color,style,on_stderr,on_groups,as_colormap = __args_parse__(sys.argv,usage)
+        pattern,color,style,on_stderr,on_groups,as_colormap,as_theme,as_source = __args_parse__(sys.argv,usage)
 
     # use the generator: output lines as they come
     if as_colormap == True and color != "rainbow":
         colormap = color.split(",")  # replace the colormap by the given colors
         color = "colormap"  # use the keyword to switch to colormap instead of list of colors
 
+    # load available themes
     themes = {}
     import glob
     for f in glob.iglob("colout_*.py"):
@@ -344,7 +358,23 @@ if __name__ == "__main__":
         name = "_".join(module.split("_")[1:])
         themes[name] = __import__(module)
 
-    if pattern in themes.keys():
+    # load available pygments lexers
+    try:
+        from pygments.lexers import get_all_lexers
+        from pygments.lexers import get_lexer_by_name
+        from pygments import highlight
+        from pygments.formatters import Terminal256Formatter
+        from pygments.formatters import TerminalFormatter
+    except ImportError:
+        pass
+    else:
+        lexers = []
+        for lexer in get_all_lexers():
+            lexers.append( lexer[1][0] )
+
+    # if theme
+    if as_theme:
+        assert( pattern in themes.keys() )
         while True:
             try:
                 item = sys.stdin.readline()
@@ -354,6 +384,32 @@ if __name__ == "__main__":
                 break
             colored = themes[pattern].theme(item)
             write(colored)
+
+    # if pygments
+    elif as_source:
+        assert( pattern.lower() in lexers )
+        lexer = get_lexer_by_name(pattern.lower())
+        # Python => 256 colors, python => 8 colors
+        ask_256 = pattern[0].isupper()
+        if ask_256:
+            try:
+                formatter = Terminal256Formatter(style = color)
+            except: # style not found
+                formatter = Terminal256Formatter()
+        else:
+            formatter = TerminalFormatter()
+
+        while True:
+            try:
+                item = sys.stdin.readline()
+            except KeyboardInterrupt:
+                break
+            if not item:
+                break
+            colored = highlight( item, lexer, formatter)
+            write(colored)
+
+    # if color
     else:
         for colored in colorgen( sys.stdin, pattern, color, style, on_groups):
             write(colored)

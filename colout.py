@@ -193,7 +193,7 @@ def colorup( text, pattern, color = "red", style = "normal", on_groups=False):
     return colored_text
 
 
-def colorgen( items, pattern, color = "red", style = "normal", on_groups=False):
+def colorgen( stream, pattern, color = "red", style = "normal", on_groups=False):
     """
     A generator that colors the items given in an iterable input.
 
@@ -202,7 +202,13 @@ def colorgen( items, pattern, color = "red", style = "normal", on_groups=False):
     ['3.\x1b[0;31m1\x1b[0m4\x1b[0;31m1\x1b[0m59265359',
      '2.7\x1b[0;31m1\x1b[0m828\x1b[0;31m1\x1b[0m82846']
     """
-    for item in items:
+    while True:
+        try:
+            item = stream.readline()
+        except KeyboardInterrupt:
+            break
+        if not item:
+            break
         yield colorup( item, pattern, color, style, on_groups)
 
 
@@ -339,7 +345,13 @@ if __name__ == "__main__":
         themes[name] = __import__(module)
 
     if pattern in themes.keys():
-        for item in sys.stdin:
+        while True:
+            try:
+                item = sys.stdin.readline()
+            except KeyboardInterrupt:
+                break
+            if not item:
+                break
             colored = themes[pattern].theme(item)
             write(colored)
     else:

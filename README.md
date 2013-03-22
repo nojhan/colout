@@ -120,3 +120,7 @@ special characters that would be recognize by your shell.
 
 * Color a source code in 256 colors mode:
   `cat colout.py | colout Python monokai`
+
+* Color a JSON stream:
+  `echo '{"foo": "lorem", "bar":"ipsum"}' | python -mjson.tool | colout -t json`
+

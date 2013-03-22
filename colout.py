@@ -32,6 +32,29 @@ colormap_idx = 0
 # Escaped end markers for given color modes
 endmarks = {8:";", 256:";38;5;"}
 
+# load available themes
+themes = {}
+import glob
+for f in glob.iglob("colout_*.py"):
+    module = ".".join(f.split(".")[:-1])
+    name = "_".join(module.split("_")[1:])
+    themes[name] = __import__(module)
+
+# load available pygments lexers
+try:
+    from pygments.lexers import get_all_lexers
+    from pygments.lexers import get_lexer_by_name
+    from pygments import highlight
+    from pygments.formatters import Terminal256Formatter
+    from pygments.formatters import TerminalFormatter
+except ImportError:
+    pass
+else:
+    lexers = []
+    for lexer in get_all_lexers():
+        lexers.append( lexer[1][0] )
+
+
 def colorin( text, color = "red", style = "normal" ):
     """
     Return the given text, surrounded by the given color ASCII markers.
@@ -286,12 +309,12 @@ def __args_parse__(argv,usage=""):
     parser.add_argument("color", metavar="COLOR", type=str, nargs='?',
             default="red",
             help="A number in [0…255], one of the available colors or a comma-separated list of values. \
-                        Available colors: "+" ".join(colors) )
+                        Available colors: "+", ".join(colors) )
 
     parser.add_argument("style", metavar="STYLE", type=str, nargs='?',
             default="bold",
             help="One of the available styles or a comma-separated list of styles.\
-                        Available styles: "+" ".join(styles) )
+                        Available styles: "+", ".join(styles) )
 
     parser.add_argument("-e", "--stderr", action="store_true",
             help="Output on the stderr instead of stdout")
@@ -303,14 +326,15 @@ def __args_parse__(argv,usage=""):
             help="Use the given colors as a colormap (cycle the colors at each match)")
 
     parser.add_argument("-t", "--theme", action="store_true",
-            help="Interpret REGEX as a theme")
+            help="Interpret REGEX as a theme. \
+                    Available themes: "+", ".join(themes.keys()))
 
     parser.add_argument("-s", "--source", action="store_true",
-            help="""Interpret REGEX as a source code readable by the Pygments library.
-            If the first letter of PATTERN is upper case, use the 256 colors mode,
-            if it is lower case, use the 8 colors mode.
-            In 256 colors, interpret COLOR as a Pygments style (e.g. "default").""")
-
+            help="Interpret REGEX as a source code readable by the Pygments library. \
+            If the first letter of PATTERN is upper case, use the 256 colors mode, \
+            if it is lower case, use the 8 colors mode. \
+            In 256 colors, interpret COLOR as a Pygments style. \
+            Available languages: "+", ".join(lexers))
     args = parser.parse_args()
 
     return args.pattern[0], args.color, args.style, args.stderr, args.groups, args.colormap, args.theme, args.source
@@ -349,28 +373,6 @@ if __name__ == "__main__":
     if as_colormap == True and color != "rainbow":
         colormap = color.split(",")  # replace the colormap by the given colors
         color = "colormap"  # use the keyword to switch to colormap instead of list of colors
-
-    # load available themes
-    themes = {}
-    import glob
-    for f in glob.iglob("colout_*.py"):
-        module = ".".join(f.split(".")[:-1])
-        name = "_".join(module.split("_")[1:])
-        themes[name] = __import__(module)
-
-    # load available pygments lexers
-    try:
-        from pygments.lexers import get_all_lexers
-        from pygments.lexers import get_lexer_by_name
-        from pygments import highlight
-        from pygments.formatters import Terminal256Formatter
-        from pygments.formatters import TerminalFormatter
-    except ImportError:
-        pass
-    else:
-        lexers = []
-        for lexer in get_all_lexers():
-            lexers.append( lexer[1][0] )
 
     # if theme
     if as_theme:

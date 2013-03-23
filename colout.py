@@ -7,6 +7,8 @@
 
 import re
 import random
+import os
+import glob
 
 ###########
 # Library #
@@ -34,7 +36,8 @@ endmarks = {8: ";", 256: ";38;5;"}
 
 # load available themes
 themes = {}
-import glob
+themes_dir=os.path.dirname(os.path.realpath(__file__))
+os.chdir( themes_dir )
 for f in glob.iglob("colout_*.py"):
     module = ".".join(f.split(".")[:-1])
     name = "_".join(module.split("_")[1:])

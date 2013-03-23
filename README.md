@@ -115,11 +115,11 @@ special characters that would be recognize by your shell.
 * Color each line of a file with a different color among a 256 color gradient from cyan to green:
   `head /var/log/auth.log | colout -c "^.*$" 39,38,37,36,35,34`
 
-* Color a source code in 8 colors mode:
-  `cat colout.py | colout -s python`
+* Color a source code in 8 colors mode, without seeing comments:
+  `cat colout.py | grep -v "#" | colout -s python`
 
 * Color a source code in 256 colors mode:
-  `cat colout.py | colout -s python monokai`
+  `cat colout.py | colout -s Python monokai`
 
 * Color a JSON stream:
   `echo '{"foo": "lorem", "bar":"ipsum"}' | python -mjson.tool | colout -t json`

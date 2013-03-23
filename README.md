@@ -80,46 +80,46 @@ special characters that would be recognize by your shell.
   `cat colout.py | colout color red bold`
 
 * Color in bold violet home directories in _/etc/passwd_:
-  `colout /home/[a-z]+ 135 < /etc/passwd`
+  `colout '/home/[a-z]+' 135 < /etc/passwd`
 
 * Use a different color for each line of the auth log
   `grep user /var/log/auth.log | colout "^.*$" rainbow`
 
 * Color in yellow user/groups id, in bold green name and in bold red home directories in _/etc/passwd_:
-  `colout :x:\([0-9]+:[0-9]+\):\([a-z]+\).*\(/home/[a-z]+\) yellow,green,red normal,bold < /etc/passwd`
+  `colout ':x:([0-9]+:[0-9]+):([^:]+).*(/home/[a-z]+)' yellow,green,red normal,bold < /etc/passwd`
 
 * Color in yellow file permissions with read rights for everyone:
-  `ls -l | colout .\(r.-\){3} yellow normal`
+  `ls -l | colout '.(r.-){3}' yellow normal`
 
 * Color in green read permission, in bold red write and execution ones:
-  `ls -l | colout \(r\)\(w*\)\(x*\) green,red normal,bold`
+  `ls -l | colout '(r)(w*)(x*)' green,red normal,bold`
 
 * Color in green comments in colout sources:
-  `colout .*\(#.*\)$ green normal < colout.py`
+  `colout '.*(#.*)$' green normal < colout.py`
 
 * Color in light green comments in non-empty colout sources, with the sharp in bold green:
-  `grep -v ^\\s*$ colout.py | colout .*\(#\)\(.*\)$ green,119 bold,normal`
+  `grep -v '^\s*$' colout.py | colout '.*(#)(.*)$' green,119 bold,normal`
 
 * Color in bold green every numbers and in bold red the words _error_ in make output:
-  `make 2>&1 | colout [0-9]+ green normal | colout error`
+  `make 2>&1 | colout '[0-9]+' green normal | colout error`
 
 * Color a make output, line numbers in yellow, errors in bold red, warning in magenta, pragma in green and C++ file base names in cyan:
-  `make 2>&1 | colout :\([0-9]+\):[0-9]* yellow normal | colout error | colout warning magenta | colout pragma green normal | colout /\(\\w+\)*\.\(h\|cpp\) cyan normal`
+  `make 2>&1 | colout ':([0-9]+):[0-9]*' yellow normal | colout error | colout warning magenta | colout pragma green normal | colout '/(\w+)*\.(h|cpp)' cyan normal`
   Or using themes:
   `make 2>&³ | colout -t cmake | colout -t g++`
 
 * Color each word in the head of auth.log with a rainbow color map, starting a new colormap at each new line (the
   begining of the command is just bash magic to repeat the string "(\\w+)\\W+":
-  `L=$(seq 10) ; P=${L//??/(\\w+)\\W+} ; head /var/log/auth.log | ./colout.py -g "^${P}(.*)$" rainbow`
+  `L=$(seq 10) ; P=${L//??/(\\w+)\\W+} ; head /var/log/auth.log | colout -g "^${P}(.*)$" rainbow`
 
 * Color each line of a file with a different color among a 256 color gradient from cyan to green:
-  `head /var/log/auth.log | ./colout.py -c "^.*$" 39,38,37,36,35,34`
+  `head /var/log/auth.log | colout -c "^.*$" 39,38,37,36,35,34`
 
 * Color a source code in 8 colors mode:
-  `cat colout.py | grep -v "#" | colout python`
+  `cat colout.py | colout -s python`
 
 * Color a source code in 256 colors mode:
-  `cat colout.py | colout Python monokai`
+  `cat colout.py | colout -s python monokai`
 
 * Color a JSON stream:
   `echo '{"foo": "lorem", "bar":"ipsum"}' | python -mjson.tool | colout -t json`

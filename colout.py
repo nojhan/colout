@@ -53,6 +53,7 @@ except ImportError:
 else:
     for lexer in get_all_lexers():
         lexers.append(lexer[1][0])
+    lexers.sort()
 
 
 def colorin(text, color="red", style="normal"):

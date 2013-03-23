@@ -80,9 +80,8 @@ def colorin(text, color="red", style="normal"):
     if style == "random" or style == "Random":
         style = random.choice(list(styles.keys()))
     else:
-        assert(style in styles)
-
-    style_code = str(styles[style])
+        if style in styles:
+            style_code = str(styles[style])
 
     if color == "random":
         mode = 8
@@ -124,6 +123,24 @@ def colorin(text, color="red", style="normal"):
     elif color in colors:
         mode = 8
         color_code = str(30 + colors[color])
+
+    # programming language
+    elif color.lower() in lexers:
+        lexer = get_lexer_by_name(color.lower())
+        # Python => 256 colors, python => 8 colors
+        ask_256 = color[0].isupper()
+        if ask_256:
+            try:
+                formatter = Terminal256Formatter(style=style)
+            except:  # style not found
+                formatter = Terminal256Formatter()
+        else:
+            if style not in ("light","dark"):
+                style = "dark" # dark color scheme by default
+            formatter = TerminalFormatter(bg=style)
+            # We should return all but the last character,
+            # because Pygments adds a newline char.
+        return highlight(text, lexer, formatter)[:-1]
 
     # 256 colors mode
     else:

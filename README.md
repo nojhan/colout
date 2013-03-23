@@ -36,7 +36,7 @@ When not specified, a *COLOR* defaults to _red_ and a *STYLE* defaults to _bold_
 (see the `-t` switch below).
 
 If the python-pygments library is available, `colout` can be used as an interface
-to it (see the `-s` switch below).
+to it (see also the `-s` switch below).
 
 `colout` is released under the GNU Public License v3.
 
@@ -123,4 +123,7 @@ special characters that would be recognize by your shell.
 
 * Color a JSON stream:
   `echo '{"foo": "lorem", "bar":"ipsum"}' | python -mjson.tool | colout -t json`
+
+* Color a source code substring:
+  `echo "There is an error in 'static void Functor::operator()( EOT& indiv ) { return indiv; }' you should fix it" | colout "'(.*)'" Cpp monokai`
 

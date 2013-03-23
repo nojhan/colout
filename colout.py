@@ -41,6 +41,7 @@ for f in glob.iglob("colout_*.py"):
     themes[name] = __import__(module)
 
 # load available pygments lexers
+lexers = []
 try:
     from pygments.lexers import get_all_lexers
     from pygments.lexers import get_lexer_by_name
@@ -50,7 +51,6 @@ try:
 except ImportError:
     pass
 else:
-    lexers = []
     for lexer in get_all_lexers():
         lexers.append( lexer[1][0] )
 

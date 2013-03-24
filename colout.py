@@ -429,15 +429,7 @@ if __name__ == "__main__":
         else:
             formatter = TerminalFormatter()
 
-        while True:
-            try:
-                item = sys.stdin.readline()
-            except KeyboardInterrupt:
-                break
-            if not item:
-                break
-            colored = highlight(item, lexer, formatter)
-            write(colored)
+        write(highlight(sys.stdin.read(), lexer, formatter))
 
     # if color
     else:

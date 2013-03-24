@@ -94,6 +94,9 @@ special characters that would be recognize by your shell.
 * Color in green read permission, in bold red write and execution ones:
   `ls -l | colout '(r)(w*)(x*)' green,red normal,bold`
 
+* Color permissions with a predefined template:
+  `ls -l | colout -t perm`
+
 * Color in green comments in colout sources:
   `colout '.*(#.*)$' green normal < colout.py`
 

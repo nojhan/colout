@@ -1,8 +1,8 @@
 
-import colout
-def theme( item ):
-    item = colout.colorup( item, '[{}]' )
-    item = colout.colorup( item, '[:,]', "blue" )
-    item = colout.colorup( item, '".*"', "green" )
-    return item
+def theme():
+    return [
+        [ '[{}]' ],
+        [ '[:,]', "blue" ],
+        [ '".*"', "green" ]
+    ]
 

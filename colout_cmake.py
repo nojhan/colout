@@ -1,19 +1,15 @@
 
-
-import colout
-def theme( item ):
-    item = colout.colorup( item,
-            "^(Scanning dependencies of target)(.*)$",
-            "magenta,blue", "normal,bold" )
-    item = colout.colorup( item,
-            "^(Linking \w+ \w+ library)(\s.*/)(\w+.[aso]+)$",
-            "magenta", "normal,normal,bold" )
-    item = colout.colorup( item,
-            "^\[\s*[0-9]+%\]\s(Built target)(\s.*)$",
-            "cyan,blue", "normal,bold")
-    item = colout.colorup( item,
-            "^\[\s*[0-9]+%\]\s(Building \w* object)(\s.*/)(\w+.cpp)(.o)$",
-            "green", "normal,normal,bold,normal")
+def theme():
+    th = [
+        [ "^(Scanning dependencies of target)(.*)$",
+          "magenta,blue", "normal,bold" ],
+        [ "^(Linking \w+ \w+ library)(\s.*/)(\w+.[aso]+)$",
+          "magenta", "normal,normal,bold" ],
+        [ "^\[\s*[0-9]+%\]\s(Built target)(\s.*)$",
+          "cyan,blue", "normal,bold" ],
+        [ "^\[\s*[0-9]+%\]\s(Building \w* object)(\s.*/)(\w+.cpp)(.o)$",
+            "green", "normal,normal,bold,normal"]
+    ]
 
     percs={
             "\s":("magenta","normal"),
@@ -29,6 +25,6 @@ def theme( item ):
             "10":("red","bold"),
             }
     for p in percs:
-        item = colout.colorup( item, "^(\[)\s*("+p+"[0-9]%)(\])", "black,"+percs[p][0]+",black", percs[p][1] )
+        th.append( [ "^(\[)\s*("+p+"[0-9]%)(\])", "black,"+percs[p][0]+",black", percs[p][1] ] )
 
-    return item
+    return th

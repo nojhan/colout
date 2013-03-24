@@ -256,6 +256,12 @@ def colorgen(stream, pattern, color="red", style="normal", on_groups=False):
         yield colorup(item, pattern, color, style, on_groups)
 
 
+def colortheme(item, theme):
+    for args in theme:
+        item = colorup(item, *args)
+    return item
+
+
 ######################
 # Command line tools #
 ######################
@@ -405,7 +411,8 @@ if __name__ == "__main__":
                 break
             if not item:
                 break
-            colored = themes[pattern].theme(item)
+            th = themes[pattern].theme()
+            colored = colortheme( item, th )
             write(colored)
 
     # if pygments

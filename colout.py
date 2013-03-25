@@ -285,7 +285,7 @@ def __args_dirty__(argv, usage=""):
     # Use a dirty argument picker
     # Check for bad usage or an help flag
     if len(argv) < 2 \
-       or len(argv) > 9 \
+       or len(argv) > 10 \
        or argv[1] == "--help" \
        or argv[1] == "-h":
         print(usage+"\n")
@@ -318,8 +318,10 @@ def __args_dirty__(argv, usage=""):
                             as_theme = bool(argv[7])
                             if len(argv) == 9:
                                 as_source = bool(argv[8])
+                                if len(argv) == 10:
+                                    as_all = bool(argv[9])
 
-    return pattern, color, style, on_stderr, on_groups, as_colormap, as_theme, as_source
+    return pattern, color, style, on_stderr, on_groups, as_colormap, as_theme, as_source, as_all
 
 
 def __args_parse__(argv, usage=""):
@@ -336,35 +338,43 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("color", metavar="COLOR", type=str, nargs='?',
             default="red",
             help="A number in [0…255], one of the available colors or a comma-separated list of values. \
-                        Available colors: "+", ".join(colors))
+                Available colors: "+", ".join(colors))
 
     parser.add_argument("style", metavar="STYLE", type=str, nargs='?',
             default="bold",
             help="One of the available styles or a comma-separated list of styles.\
-                        Available styles: "+", ".join(styles))
+                Available styles: "+", ".join(styles))
 
     parser.add_argument("-e", "--stderr", action="store_true",
             help="Output on the stderr instead of stdout")
 
     parser.add_argument("-g", "--groups", action="store_true",
-            help="For color maps (random, rainbow), iterate over matching groups in the pattern instead of over patterns")
+            help="For color maps (random, rainbow), iterate over matching groups \
+                in the pattern instead of over patterns")
 
     parser.add_argument("-c", "--colormap", action="store_true",
             help="Use the given colors as a colormap (cycle the colors at each match)")
 
+    parser.add_argument("-a", "--all", action="store_true",
+            help="Color the whole input at once instead of line per line \
+                (really useful for coloring a source code file with strings \
+                on multiple lines).")
+
     parser.add_argument("-t", "--theme", action="store_true",
             help="Interpret REGEX as a theme. \
-                    Available themes: "+", ".join(themes.keys()))
+                Available themes: "+", ".join(themes.keys()))
 
     parser.add_argument("-s", "--source", action="store_true",
             help="Interpret REGEX as a source code readable by the Pygments library. \
-            If the first letter of PATTERN is upper case, use the 256 colors mode, \
-            if it is lower case, use the 8 colors mode. \
-            In 256 colors, interpret COLOR as a Pygments style. \
-            Available languages: "+", ".join(lexers))
+                If the first letter of PATTERN is upper case, use the 256 colors mode, \
+                if it is lower case, use the 8 colors mode. \
+                Interpret COLOR as a Pygments style. \
+                Available languages: "+", ".join(lexers))
+
     args = parser.parse_args()
 
-    return args.pattern[0], args.color, args.style, args.stderr, args.groups, args.colormap, args.theme, args.source
+    return args.pattern[0], args.color, args.style, args.stderr, args.groups, \
+           args.colormap, args.theme, args.source, args.all
 
 
 def write(colored, on_stderr=False):
@@ -390,11 +400,13 @@ if __name__ == "__main__":
 
     # if argparse is not installed
     except ImportError:
-        pattern, color, style, on_stderr, on_groups, as_colormap, as_theme, as_source = __args_dirty__(sys.argv, usage)
+        pattern, color, style, on_stderr, on_groups, as_colormap, as_theme, as_source, as_all \
+            = __args_dirty__(sys.argv, usage)
 
     # if argparse is available
     else:
-        pattern, color, style, on_stderr, on_groups, as_colormap, as_theme, as_source = __args_parse__(sys.argv, usage)
+        pattern, color, style, on_stderr, on_groups, as_colormap, as_theme, as_source, as_all \
+            = __args_parse__(sys.argv, usage)
 
     # use the generator: output lines as they come
     if as_colormap is True and color != "rainbow":
@@ -404,16 +416,19 @@ if __name__ == "__main__":
     # if theme
     if as_theme:
         assert(pattern in themes.keys())
-        while True:
-            try:
-                item = sys.stdin.readline()
-            except KeyboardInterrupt:
-                break
-            if not item:
-                break
+        if as_all:
             th = themes[pattern].theme()
-            colored = colortheme( item, th )
-            write(colored)
+            write( colortheme( sys.stdin.read(), th ) )
+        else:
+            while True:
+                try:
+                    item = sys.stdin.readline()
+                except KeyboardInterrupt:
+                    break
+                if not item:
+                    break
+                th = themes[pattern].theme()
+                write( colortheme( item, th ) )
 
     # if pygments
     elif as_source:
@@ -429,17 +444,22 @@ if __name__ == "__main__":
         else:
             formatter = TerminalFormatter()
 
-        while True:
-            try:
-                item = sys.stdin.readline()
-            except KeyboardInterrupt:
-                break
-            if not item:
-                break
-            colored = highlight(item, lexer, formatter)
-            write(colored)
+        if as_all:
+                write( highlight(sys.stdin.read(), lexer, formatter) )
+        else:
+            while True:
+                try:
+                    item = sys.stdin.readline()
+                except KeyboardInterrupt:
+                    break
+                if not item:
+                    break
+                write( highlight(item, lexer, formatter) )
 
     # if color
     else:
-        for colored in colorgen(sys.stdin, pattern, color, style, on_groups):
-            write(colored)
+        if as_all:
+            write( colorup(sys.stdin.read(), pattern, color, style, on_groups) )
+        else:
+            for colored in colorgen(sys.stdin, pattern, color, style, on_groups):
+                write(colored)

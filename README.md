@@ -46,9 +46,6 @@ to it (see also the `-s` switch below).
 * `-h`, `--help`:
   Show an help message and exit
 
-* `-e`, `--stderr`:
-  Output on the standard error instead of standard output.
-
 * `-g`, `--groups`:
   For color maps (like "rainbow"), iterate over matching groups in the pattern instead of over patterns.
 

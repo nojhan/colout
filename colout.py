@@ -24,7 +24,7 @@ styles = {
 # Available color names in 8-colors mode
 colors = {
     "black": 0, "red": 1, "green": 2, "yellow": 3, "blue": 4,
-    "magenta": 5, "cyan": 6, "white": 7
+    "magenta": 5, "cyan": 6, "white": 7, "none": -1
 }
 
 rainbow = ["red", "yellow", "green", "cyan", "blue", "magenta"]
@@ -79,6 +79,9 @@ def colorin(text, color="red", style="normal"):
     start = "\033["
     stop = "\033[0m"
 
+    color_code = ""
+    style_code = ""
+
     # Convert the style code
     if style == "random" or style == "Random":
         style = random.choice(list(styles.keys()))
@@ -86,7 +89,11 @@ def colorin(text, color="red", style="normal"):
         if style in styles:
             style_code = str(styles[style])
 
-    if color == "random":
+    if color == "none":
+        # if no color, style cannot be applied
+        return text
+
+    elif color == "random":
         mode = 8
         color_code = random.choice(list(colors.values()))
         color_code = str(30 + color_code)

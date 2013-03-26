@@ -20,7 +20,7 @@ If you ask for less colors, the last one will be duplicated across remaining
 groups.
 
 Available colors are: blue, black, yellow, cyan, green, magenta, white, red,
-rainbow, random, Random or any number between 0 and 255.
+rainbow, random, Random, none or any number between 0 and 255.
 
 Available styles are: normal, bold, faint, italic, underline, blink,
 rapid_blink, reverse, conceal or random.

@@ -116,10 +116,12 @@ def colorin(text, color="red", style="normal"):
             colormap_idx = 0
 
     elif color == "scale":
-        mode = 8
-        import babel.numbers as bn
         import math
-        f = float(bn.parse_decimal(text))
+        try:
+            import babel.numbers as bn
+            f = float(bn.parse_decimal(text))
+        except ImportError:
+            f = float(text)
 
         # if out of scale, do not color
         if f < scale[0] or f > scale[1]:
@@ -128,6 +130,7 @@ def colorin(text, color="red", style="normal"):
         # normalize and scale over the nb of colors in colormap
         i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(colormap)-1) ) )
 
+        mode = 8
         color = colormap[i]
         color_code = str(30 + colors[color])
 

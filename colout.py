@@ -27,9 +27,11 @@ colors = {
     "magenta": 5, "cyan": 6, "white": 7, "none": -1
 }
 
-rainbow = ["red", "yellow", "green", "cyan", "blue", "magenta"]
+rainbow = ["magenta", "blue", "cyan", "green", "yellow", "red"]
 colormap = rainbow  # default colormap to rainbow
 colormap_idx = 0
+
+scale = (0,100)
 
 # Escaped end markers for given color modes
 endmarks = {8: ";", 256: ";38;5;"}
@@ -112,6 +114,22 @@ def colorin(text, color="red", style="normal"):
             colormap_idx += 1
         else:
             colormap_idx = 0
+
+    elif color == "scale":
+        mode = 8
+        import babel.numbers as bn
+        import math
+        f = float(bn.parse_decimal(text))
+
+        # if out of scale, do not color
+        if f < scale[0] or f > scale[1]:
+            return text
+
+        # normalize and scale over the nb of colors in colormap
+        i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(colormap)-1) ) )
+
+        color = colormap[i]
+        color_code = str(30 + colors[color])
 
     elif color == "colormap":
         color = colormap[colormap_idx]
@@ -331,7 +349,7 @@ def __args_dirty__(argv, usage=""):
     # Use a dirty argument picker
     # Check for bad usage or an help flag
     if len(argv) < 2 \
-       or len(argv) > 9 \
+       or len(argv) > 10 \
        or argv[1] == "--help" \
        or argv[1] == "-h":
         print(usage+"\n")
@@ -364,8 +382,10 @@ def __args_dirty__(argv, usage=""):
                             as_source = bool(argv[7])
                             if len(argv) == 9:
                                 as_all = bool(argv[8])
+                                if len(argv) == 10:
+                                    scale = bool(argv[9])
 
-    return pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all
+    return pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, scale
 
 
 def __args_parse__(argv, usage=""):
@@ -382,7 +402,8 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("color", metavar="COLOR", type=str, nargs='?',
             default="red",
             help="A number in [0…255], one of the available colors or a comma-separated list of values. \
-                Available colors: "+", ".join(colors))
+                Available colors: "+", ".join(colors)+ \
+                ". Available special colors: none, random, Random, rainbow, Rainbow, scale")
 
     parser.add_argument("style", metavar="STYLE", type=str, nargs='?',
             default="bold",
@@ -395,6 +416,10 @@ def __args_parse__(argv, usage=""):
 
     parser.add_argument("-c", "--colormap", action="store_true",
             help="Use the given colors as a colormap (cycle the colors at each match)")
+
+    parser.add_argument("-l", "--scale",
+            help="When using the 'scale' colormap, parse matches as decimal numbers (taking your locale into account) \
+                and apply the rainbow colormap linearly between the given SCALE=min,max")
 
     parser.add_argument("-a", "--all", action="store_true",
             help="Color the whole input at once instead of line per line \
@@ -415,7 +440,7 @@ def __args_parse__(argv, usage=""):
     args = parser.parse_args()
 
     return args.pattern[0], args.color, args.style, args.groups, \
-           args.colormap, args.theme, args.source, args.all
+           args.colormap, args.theme, args.source, args.all, args.scale
 
 
 def stdin_write( as_all, function, *args ):
@@ -439,13 +464,16 @@ if __name__ == "__main__":
 
     # if argparse is not installed
     except ImportError:
-        pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all \
+        pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale \
             = __args_dirty__(sys.argv, usage)
 
     # if argparse is available
     else:
-        pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all \
+        pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale \
             = __args_parse__(sys.argv, usage)
+
+    if myscale:
+        scale = map(int,myscale.split(","))
 
     # use the generator: output lines as they come
     if as_colormap is True and color != "rainbow":

@@ -3,7 +3,7 @@ colout(1) -- Color Up Arbitrary Command Ouput
 
 ## SYNOPSIS
 
-`colout` [-h] [-e] PATTERN [COLOR(S)] [STYLE(S)]
+`colout` [-h] [-e] [-g] [-t] [-s] [-l] PATTERN [COLOR(S)] [STYLE(S)]
 
 
 ## DESCRIPTION
@@ -20,7 +20,7 @@ If you ask for less colors, the last one will be duplicated across remaining
 groups.
 
 Available colors are: blue, black, yellow, cyan, green, magenta, white, red,
-rainbow, random, Random, none or any number between 0 and 255.
+rainbow, random, Random, scale, none or any number between 0 and 255.
 
 Available styles are: normal, bold, faint, italic, underline, blink,
 rapid_blink, reverse, conceal or random.
@@ -29,6 +29,10 @@ rapid_blink, reverse, conceal or random.
 available in the ANSI table. `random` will do the same in 8 colors mode.
 
 `rainbow` will cycle over a 8 colors rainbow at each matching pattern.
+
+`scale` will parse the matching text as a decimal number and apply the rainbow
+colormap according to its position on a scale defined by the `-l` option (see
+below, [0-100] by default).
 
 When not specified, a *COLOR* defaults to _red_ and a *STYLE* defaults to _bold_.
 
@@ -52,6 +56,14 @@ to it (see also the `-s` switch below).
 * `-c`, `--colormap`:
   Use the given list of comma-separated colors as a colormap (cycle the colors at each match).
 
+* `-l`, `--scale`:
+  When using the 'scale' colormap, parse matches as decimal numbers (taking your locale into account)
+  and apply the rainbow colormap linearly between the given SCALE=min,max (SCALE=0,100, by default).
+
+* `-a`, `--all`:
+  Color the whole input at once instead of line per line
+  (really useful for coloring a source code file with strings on multiple lines).
+
 * `-t`, `--theme`:
   Interpret PATTERN as a predefined theme (perm, cmake, g++, etc.)
 
@@ -69,6 +81,15 @@ that matches it.
 `colout` understands regex as specifed in the _re_ python module. Given that
 `colout` is generally called by the command line, you may have to escape
 special characters that would be recognize by your shell.
+
+
+## DEPENDENCIES
+
+Recommended packages :
+
+* `argparse` for a usable arguments parsing
+* `pygments` for the source code syntax coloring
+* `babel` for a locale-aware number parsing
 
 
 ## EXAMPLES

@@ -9,6 +9,7 @@ import re
 import random
 import os
 import glob
+import math
 
 ###########
 # Library #
@@ -26,6 +27,37 @@ colors = {
     "black": 0, "red": 1, "green": 2, "yellow": 3, "blue": 4,
     "magenta": 5, "cyan": 6, "white": 7, "none": -1
 }
+
+ansi_min = 16
+ansi_max = 232
+
+def rgb_rainbow( x, freq = 1.0/(256.0/math.pi) ):
+    scope = (ansi_max - ansi_min)/2.0
+    red   = ansi_min + scope * (1+math.sin( 2*freq*x + math.pi/2 ))
+    green = ansi_min + scope * (1+math.sin( 2*freq*x - math.pi/2 ))
+    blue  = ansi_min + scope * (1+math.sin(   freq*x - math.pi/2 ))
+    return ( red, green, blue )
+
+
+def rgb_to_ansi( red, green, blue ):
+
+    offset = 42.5
+    is_gray = True
+    while is_gray:
+        if red < offset or green < offset or blue < offset:
+            all_gray = red < offset and green < offset and blue < offset
+            is_gray = False
+        offset += 42.5
+
+    if all_gray:
+        val = ansi_max + round( (red + green + blue)/33.0 )
+        return int(val)
+    else:
+        val = ansi_min
+        for color,modulo in zip( [red, green, blue], [6*6, 6, 1] ):
+            val += round(6.0 * (color / 256.0)) * modulo
+        return int(val)
+
 
 rainbow = ["magenta", "blue", "cyan", "green", "yellow", "red"]
 colormap = rainbow  # default colormap to rainbow
@@ -115,8 +147,17 @@ def colorin(text, color="red", style="normal"):
         else:
             colormap_idx = 0
 
+    elif color == "Rainbow":
+        mode = 256
+        color_nb = rgb_to_ansi( *rgb_rainbow( colormap_idx ) )
+        color_code = str( color_nb )
+
+        if colormap_idx < 255:
+            colormap_idx += 1
+        else:
+            colormap_idx = 0
+
     elif color == "scale":
-        import math
         try:
             import babel.numbers as bn
             f = float(bn.parse_decimal(text))
@@ -155,6 +196,13 @@ def colorin(text, color="red", style="normal"):
         mode = 8
         color_code = str(30 + colors[color])
 
+    # 256 colors mode
+    elif isinstance( color, int ):
+        mode = 256
+        color_nb = int(color)
+        assert(0 <= color_nb <= 255)
+        color_code = str(color_nb)
+
     # programming language
     elif color.lower() in lexers:
         lexer = get_lexer_by_name(color.lower())
@@ -172,13 +220,6 @@ def colorin(text, color="red", style="normal"):
             # We should return all but the last character,
             # because Pygments adds a newline char.
         return highlight(text, lexer, formatter)[:-1]
-
-    # 256 colors mode
-    else:
-        mode = 256
-        color_nb = int(color)
-        assert(0 <= color_nb <= 255)
-        color_code = str(color_nb)
 
     return start + style_code + endmarks[mode] + color_code + "m" + text + stop
 

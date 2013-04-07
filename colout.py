@@ -89,7 +89,10 @@ except ImportError:
     pass
 else:
     for lexer in get_all_lexers():
-        lexers.append(lexer[1][0])
+        try:
+            lexers.append(lexer[1][0])
+        except IndexError:
+            pass
     lexers.sort()
 
 

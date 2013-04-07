@@ -197,7 +197,7 @@ def colorin(text, color="red", style="normal"):
         color_code = str(30 + colors[color])
 
     # 256 colors mode
-    elif isinstance( color, int ):
+    elif color.isdigit():
         mode = 256
         color_nb = int(color)
         assert(0 <= color_nb <= 255)
@@ -220,6 +220,10 @@ def colorin(text, color="red", style="normal"):
             # We should return all but the last character,
             # because Pygments adds a newline char.
         return highlight(text, lexer, formatter)[:-1]
+
+    # unrecognized
+    else:
+        raise Exception('Unrecognized color %s' % color)
 
     return start + style_code + endmarks[mode] + color_code + "m" + text + stop
 

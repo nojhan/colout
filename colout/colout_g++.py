@@ -19,7 +19,9 @@ def theme():
         # [-Wflag]
         [ "\[-W.*\]", "magenta"],
         # Filename:line number
-        [ "(/.*?)/([^/]+\.)(h|cp*):([0-9]+):*[0-9]*(.*)", "white,white,white,yellow,none", "normal,bold,bold,normal"],
+        [ "(/.*?)/([^/]+\.)(h|cp*):([0-9]+):*([0-9]*)(.*)",
+          "white,white,white,yellow,yellow,none",
+          "normal,bold,bold,bold,normal" ],
         # source code in single quotes
         [ "'(.*?)'", "Cpp", "monokai" ]
     ]

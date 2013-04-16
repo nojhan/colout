@@ -6,7 +6,7 @@ def theme():
     #  actions performed in green
     performed="green"
 
-    th = [
+    return [
         # Configure...
         [ "^--.*works", performed ],
         [ "^--.*done", performed ],
@@ -33,24 +33,7 @@ def theme():
             performing, "normal,normal,bold,normal"],
         # make errors
         [ "make\[[0-9]+\].*", "yellow"],
-        [ "(make: \*\*\* \[.+\] )(.* [0-9]+)", "red", "normal,bold"]
+        [ "(make: \*\*\* \[.+\] )(.* [0-9]+)", "red", "normal,bold"],
+        # progress percentage
+        [ "^\[\s*([0-9]+)%\]","scale" ]
     ]
-
-    # Percentages: rainbow from magenta to red, depending on the number
-    percs={
-            "\s":("magenta","normal"),
-            "1":("magenta","normal"),
-            "2":("magenta","normal"),
-            "3":("blue","normal"),
-            "4":("blue","normal"),
-            "5":("cyan","normal"),
-            "6":("cyan","normal"),
-            "7":("green","normal"),
-            "8":("yellow","normal"),
-            "9":("red","normal"),
-            "10":("red","bold"),
-            }
-    for p in percs:
-        th.append( [ "^(\[)\s*("+p+"[0-9]%)(\])", "black,"+percs[p][0]+",black", percs[p][1] ] )
-
-    return th

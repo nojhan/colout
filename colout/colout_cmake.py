@@ -33,7 +33,7 @@ def theme():
             performing, "normal,normal,bold,normal"],
         # make errors
         [ "make\[[0-9]+\].*", "yellow"],
-        [ "(make:.*)(Error [0-9]+)", "red", "normal,bold"]
+        [ "(make: \*\*\* \[.+\] )(.* [0-9]+)", "red", "normal,bold"]
     ]
 
     # Percentages: rainbow from magenta to red, depending on the number

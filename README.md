@@ -44,6 +44,13 @@ to it (see also the `-s` switch below).
 
 `colout` is released under the GNU Public License v3.
 
+## INSTALLATION
+
+    sudo python setup.py install
+
+and then soft link `/usr/local/bin/colout` to your colout.py under your installaion directory, which usually like
+
+    /usr/local/lib/python2.7/dist-packages/colout-0.1-py2.7.egg/colout/colout.py
 
 ## OPTIONS
 

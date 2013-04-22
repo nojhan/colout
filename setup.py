@@ -16,7 +16,7 @@ if sys.argv[-1] == 'publish':
 
 packages = ['colout']
 
-requires = []
+requires = ['argparse', 'pygments', 'babel']
 
 setup(
     name='colout',

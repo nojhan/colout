@@ -3,7 +3,7 @@
 
 # Small launcher script for the main module.
 
-# Licence: GPL 3+
+# Licence: GPL 3
 
 set -e
 set -u

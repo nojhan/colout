@@ -29,6 +29,7 @@ setup(
     packages=packages,
     package_data={'': ['LICENSE']},
     package_dir={'colout': 'colout'},
+    scripts=['bin/colout'],
     include_package_data=True,
     install_requires=requires,
     license=open('LICENSE').read(),

@@ -1,5 +1,8 @@
 #encoding: utf-8
 
+def default_gettext( msg ):
+    return msg
+
 def theme():
     import os
     import gettext
@@ -9,8 +12,12 @@ def theme():
     gv = os.popen("g++ -dumpversion").read().strip()
 
     # get the current translations of gcc
-    t = gettext.translation("gcc-"+gv)
-    _ = t.gettext
+    try:
+        t = gettext.translation("gcc-"+gv)
+    except IOError:
+        _ = default_gettext
+    else:
+        _ = t.gettext
     # _("msg") will return the given message, translated
 
     # if the locale is unicode

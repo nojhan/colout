@@ -1,0 +1,11 @@
+#!/bin/bash
+# Copyright © 2013 Martin Ueding <dev@martin-ueding.de>
+
+# Small launcher script for the main module.
+
+# Licence: GPL 3
+
+set -e
+set -u
+
+python3 -m colout.colout "$@"

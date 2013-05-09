@@ -52,6 +52,58 @@ and then soft link `/usr/local/bin/colout` to your colout.py under your installa
 
     /usr/local/lib/python2.7/dist-packages/colout-0.1-py2.7.egg/colout/colout.py
 
+## OTHER INSTALLATION METHOD
+
+Pypi(the Python Package Index)
+
+    sudo pip install colout
+    
+or
+
+    sudo easy_install colout
+
+Ubuntu 13.04's ppa
+
+    sudo add-apt-repository ppa:ciici123/colout
+    sudo apt-get update
+    sudo apt-get/aptitude install colout
+
+Gentoo overlay
+
+    1. Install layman
+    
+    echo "app-portage/layman git" >> $EPREFIX/etc/portage/package.Use
+    sudo emerge layman
+    
+    2. Edit `$EPREFIX/etc/layman/layman.cfg`. Add a line after
+    
+    overlays   : http://www.gentoo.org/proj/en/overlays/repositories.xml
+    
+    so that it becomes
+    
+    overlays   : http://www.gentoo.org/proj/en/overlays/repositories.xml
+                 file://$EPREFIX/var/lib/layman/my-list.xml
+
+    3. Edit `$EPREFIX/var/lib/layman/my-list.xml`.  The content of this file should be:
+    
+    <?xml version="1.0" ?>                                                           
+    <repositories version="1.0">
+    <repo priority="50" quality="experimental" status="unofficial">
+        <name>dongwm-overlay</name>
+        <description>dongweiming's gentoo overlay</description>
+        <homepage>https://github.com/dongweiming/dongwm-overlay.git</homepage>
+        <owner>
+            <email>ciici1234@hotmail.com</email>
+        </owner>        
+        <source type="git">git://github.com/dongweiming/dongwm-overlay.git</source>             
+    </repo>
+    </repositories>
+
+    4. Add this overlay and installation
+    
+    layman -a dongwm-overlay && sudo emerge colout
+    
+
 ## OPTIONS
 
 * `-h`, `--help`:

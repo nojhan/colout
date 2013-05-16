@@ -8,6 +8,8 @@ def theme():
     import gettext
     import locale
 
+    section="blue"
+
     # get g++ version
     gv = os.popen("g++ -dumpversion").read().strip()
 
@@ -41,8 +43,14 @@ def theme():
         # Highlight message start:
         #   path   file   ext     : line   :  col     …
         [ "(/.*?)/([^/:]+): (In .*)"+qo,
-          "green",
+          section,
           "normal,normal,bold" ],
+
+        [ "(/.*?)/([^/:]+): (At .*)",
+          section,
+          "normal,normal,bold" ],
+
+        [ _("In file included from"), section ],
 
         # Highlight locations:
         #   path   file   ext     : line   :  col     …

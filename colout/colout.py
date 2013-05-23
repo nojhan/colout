@@ -10,6 +10,7 @@ import random
 import os
 import glob
 import math
+import importlib
 
 ###########
 # Library #
@@ -73,9 +74,10 @@ themes = {}
 themes_dir=os.path.dirname(os.path.realpath(__file__))
 os.chdir( themes_dir )
 for f in glob.iglob("colout_*.py"):
-    module = ".".join(f.split(".")[:-1])
-    name = "_".join(module.split("_")[1:])
-    themes[name] = __import__(module)
+    module = ".".join(f.split(".")[:-1]) # remove extension
+    name = "_".join(module.split("_")[1:]) # remove the prefix
+    print(themes_dir,module,name)
+    themes[name] = importlib.import_module(module)
 
 # load available pygments lexers
 lexers = []

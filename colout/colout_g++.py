@@ -36,7 +36,6 @@ def theme():
     return [
         [ _("error: "), "red", "bold" ],
         [ _("warning: "), "magenta", "bold" ],
-        [ _("note: "), "blue", "bold" ],
         # [-Wflag]
         [ "\[-W.*\]", "magenta"],
 
@@ -59,6 +58,11 @@ def theme():
           "normal,normal,normal,normal" ],
 
         # source code in single quotes
-        [ qo+"(.*?)"+qc, "Cpp", "monokai" ]
+        [ qo+"(.*?)"+qc, "Cpp", "monokai" ],
+
+        # source code after a "note: candidate are/is:"
+        [ _("note: ")+"((?!.*(candidate|"+qo+"|"+qc+")).*)$", "Cpp", "monokai" ],
+        # after the code part, to avoid matching ANSI escape chars
+        [ _("note: "), "green", "normal" ]
     ]
 

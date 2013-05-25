@@ -76,7 +76,6 @@ os.chdir( themes_dir )
 for f in glob.iglob("colout_*.py"):
     module = ".".join(f.split(".")[:-1]) # remove extension
     name = "_".join(module.split("_")[1:]) # remove the prefix
-    print(themes_dir,module,name)
     themes[name] = importlib.import_module(module)
 
 # load available pygments lexers

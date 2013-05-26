@@ -600,8 +600,10 @@ def __args_parse__(argv, usage=""):
                 on multiple lines).")
 
     parser.add_argument("-t", "--theme", action="store_true",
-            help="Interpret REGEX as a theme.")# \
-                #Available themes: "+", ".join(themes.keys()))
+            help="Interpret REGEX as a theme.")
+
+    parser.add_argument("-r", "--resources", action="store_true",
+            help="Print the names of all available colors, styles, themes and palettes.")
 
     parser.add_argument("--debug", action="store_true",
             help="Debug mode: print what's going on internally, useful if you want to check what features are available.")
@@ -610,13 +612,12 @@ def __args_parse__(argv, usage=""):
             help="Interpret REGEX as a source code readable by the Pygments library. \
                 If the first letter of PATTERN is upper case, use the 256 colors mode, \
                 if it is lower case, use the 8 colors mode. \
-                Interpret COLOR as a Pygments style.")# \
-                #Available languages: "+", ".join(lexers))
+                Interpret COLOR as a Pygments style.")
 
     args = parser.parse_args()
 
     return args.pattern[0], args.color, args.style, args.groups, \
-           args.colormap, args.theme, args.source, args.all, args.scale, args.debug
+           args.colormap, args.theme, args.source, args.all, args.scale, args.debug, args.resources
 
 
 def write_all( as_all, stream_in, stream_out, function, *args ):
@@ -650,7 +651,7 @@ if __name__ == "__main__":
 
     # if argparse is available
     else:
-        pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale, debug \
+        pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale, debug, resources \
             = __args_parse__(sys.argv, usage)
 
     if debug:
@@ -676,6 +677,31 @@ if __name__ == "__main__":
         logging.error( "duplicated palette file name: %s" % e )
         sys.exit( error_codes["DuplicatedPalette"] )
 
+    if resources:
+        print("Available resources:")
+        print("STYLES: %s" % ", ".join(styles) )
+        print("COLORS: %s" % ", ".join(colors) )
+
+        if len(themes) > 0:
+            print("THEMES: %s" % ", ".join(themes.keys()) )
+        else:
+            print("NO THEME")
+
+        if len(lexers) > 0:
+            print("LEXERS: %s" % ", ".join(lexers) )
+        else:
+            print("NO LEXER")
+
+        if len(colormaps) > 0:
+            print("PALETTES: %s" % ", ".join(colormaps) )
+        else:
+            print("NO PALETTE")
+
+        sys.exit(0) # not an error, we asked for help
+
+    ############
+    # Coloring #
+    ############
 
     try:
         if myscale:

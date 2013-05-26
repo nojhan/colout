@@ -13,9 +13,50 @@ import glob
 import math
 import importlib
 
-###########
-# Library #
-###########
+###############################################################################
+# Ressource parsing helpers
+###############################################################################
+
+def parse_gimp_palette( filename ):
+    """
+    Parse the given filename as a GIMP palette (.gpl)
+
+    Return the filename (without path and extension) and a list of ordered
+    colors.
+    Generally, the colors are RGB triplets, thus this function returns:
+        (name, [ [R0,G0,B0], [R1,G1,B1], ... , [RN,GN,BN] ])
+    """
+
+    fd = open(filename)
+    # remove path and extension, only keep the file name itself
+    name = os.path.splitext( os.path.basename(filename ))[0]
+
+    # The first .gpl line is a header
+    assert( fd.readline().strip() == "GIMP Palette" )
+
+    # Then the full name of the palette
+    long_name = fd.readline().strip()
+
+    # Then the columns number.
+    # split on colon, take the second argument as an int
+    columns = int( fd.readline().strip().split(":")[1].strip() )
+
+    # Then the colors themselves.
+    palette = []
+    for line in fd:
+        # skip lines with only a comment
+        if re.match("^\s*#.*$", line ):
+            continue
+        # decode the columns-ths codes. Generally [R G B] followed by a comment
+        colors = [ int(c) for c in line.split()[:columns] ]
+        palette.append( colors )
+
+    return name,palette
+
+
+###############################################################################
+# Global variables
+###############################################################################
 
 # Available styles
 styles = {
@@ -30,37 +71,6 @@ colors = {
     "magenta": 5, "cyan": 6, "white": 7, "none": -1
 }
 
-ansi_min = 16
-ansi_max = 232
-
-def rgb_rainbow( x, freq = 1.0/(256.0/math.pi) ):
-    scope = (ansi_max - ansi_min)/2.0
-    red   = ansi_min + scope * (1+math.sin( 2*freq*x + math.pi/2 ))
-    green = ansi_min + scope * (1+math.sin( 2*freq*x - math.pi/2 ))
-    blue  = ansi_min + scope * (1+math.sin(   freq*x - math.pi/2 ))
-    return ( red, green, blue )
-
-
-def rgb_to_ansi( red, green, blue ):
-
-    offset = 42.5
-    is_gray = True
-    while is_gray:
-        if red < offset or green < offset or blue < offset:
-            all_gray = red < offset and green < offset and blue < offset
-            is_gray = False
-        offset += 42.5
-
-    if all_gray:
-        val = ansi_max + round( (red + green + blue)/33.0 )
-        return int(val)
-    else:
-        val = ansi_min
-        for color,modulo in zip( [red, green, blue], [6*6, 6, 1] ):
-            val += round(6.0 * (color / 256.0)) * modulo
-        return int(val)
-
-
 rainbow = ["magenta", "blue", "cyan", "green", "yellow", "red"]
 colormap = rainbow  # default colormap to rainbow
 colormap_idx = 0
@@ -70,14 +80,39 @@ scale = (0,100)
 # Escaped end markers for given color modes
 endmarks = {8: ";", 256: ";38;5;"}
 
+ansi_min = 16
+ansi_max = 232
+
+def rgb_rainbow( x, freq = 1.0/(256.0/math.pi) ):
+    """Analytical expression of a n-colors rainbow colormap"""
+    scope = (ansi_max - ansi_min)/2.0
+    red   = ansi_min + scope * (1+math.sin( 2*freq*x + math.pi/2 ))
+    green = ansi_min + scope * (1+math.sin( 2*freq*x - math.pi/2 ))
+    blue  = ansi_min + scope * (1+math.sin(   freq*x - math.pi/2 ))
+    return ( red, green, blue )
+
+
+###############################################################################
+# Load available extern ressources
+###############################################################################
+
 # load available themes
 themes = {}
 themes_dir=os.path.dirname(os.path.realpath(__file__))
 os.chdir( themes_dir )
+
 for f in glob.iglob("colout_*.py"):
     module = ".".join(f.split(".")[:-1]) # remove extension
     name = "_".join(module.split("_")[1:]) # remove the prefix
     themes[name] = importlib.import_module(module)
+
+# load available colormaps (GIMP palettes format)
+colormaps = {}
+for p in glob.iglob("*.gpl"):
+    name,palette = parse_gimp_palette(p)
+    if name in colormaps:
+        raise Exception('Duplicated palette filename: %s' % name)
+    colormaps[name] = palette
 
 # load available pygments lexers
 lexers = []
@@ -96,6 +131,30 @@ else:
         except IndexError:
             pass
     lexers.sort()
+
+
+###############################################################################
+# Library
+###############################################################################
+
+def rgb_to_ansi( red, green, blue ):
+    """Convert a RGB color to its closest 256-colors ANSI index"""
+    offset = 42.5
+    is_gray = True
+    while is_gray:
+        if red < offset or green < offset or blue < offset:
+            all_gray = red < offset and green < offset and blue < offset
+            is_gray = False
+        offset += 42.5
+
+    if all_gray:
+        val = ansi_max + round( (red + green + blue)/33.0 )
+        return int(val)
+    else:
+        val = ansi_min
+        for color,modulo in zip( [red, green, blue], [6*6, 6, 1] ):
+            val += round(6.0 * (color / 256.0)) * modulo
+        return int(val)
 
 
 def colorin(text, color="red", style="normal"):
@@ -158,6 +217,16 @@ def colorin(text, color="red", style="normal"):
         color_code = str( color_nb )
 
         if colormap_idx < 255:
+            colormap_idx += 1
+        else:
+            colormap_idx = 0
+
+    elif color in colormaps.keys():
+        mode = 256
+        color_nb = rgb_to_ansi( *colormaps[color][colormap_idx] )
+        color_code = str( color_nb )
+
+        if colormap_idx < len(colormaps[color]):
             colormap_idx += 1
         else:
             colormap_idx = 0

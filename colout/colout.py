@@ -12,6 +12,7 @@ import os
 import glob
 import math
 import importlib
+import logging
 
 ###############################################################################
 # Ressource parsing helpers
@@ -27,6 +28,7 @@ def parse_gimp_palette( filename ):
         (name, [ [R0,G0,B0], [R1,G1,B1], ... , [RN,GN,BN] ])
     """
 
+    logging.debug("parse GIMP palette file: %s" % filename)
     fd = open(filename)
     # remove path and extension, only keep the file name itself
     name = os.path.splitext( os.path.basename(filename ))[0]
@@ -51,6 +53,7 @@ def parse_gimp_palette( filename ):
         colors = [ int(c) for c in line.split()[:columns] ]
         palette.append( colors )
 
+    logging.debug("parsed %i RGB colors from palette %s" % (len(palette), name) )
     return name,palette
 
 
@@ -148,6 +151,7 @@ def load_themes( themes_dir):
     for f in glob.iglob("colout_*.py"):
         module = ".".join(f.split(".")[:-1]) # remove extension
         name = "_".join(module.split("_")[1:]) # remove the prefix
+        logging.debug("load theme %s" % name)
         themes[name] = importlib.import_module(module)
 
 
@@ -164,7 +168,9 @@ def load_palettes( palettes_dir ):
         # Convert the palette to ANSI
         ansi_palette = [ rgb_to_ansi(r,g,b) for r,g,b in palette ]
         # Compress it so that there isn't two consecutive identical colors
-        colormaps[name] = uniq( ansi_palette )
+        compressed = uniq(ansi_palette)
+        logging.debug("load %i ANSI colors in palette %s" % (len(compressed), name))
+        colormaps[name] = compressed
 
 
 def load_lexers():
@@ -178,13 +184,17 @@ def load_lexers():
         from pygments.formatters import Terminal256Formatter
         from pygments.formatters import TerminalFormatter
     except ImportError:
+        logging.warning("the pygments module has not been found, syntax coloring is not available")
         pass
     else:
         for lexer in get_all_lexers():
             try:
                 lexers.append(lexer[1][0])
             except IndexError:
+                logging.warning("cannot load lexer: %s" % lexer[1][0])
                 pass
+            else:
+                logging.debug("loaded lexer %s" % lexer[1][0])
         lexers.sort()
 
 
@@ -436,6 +446,7 @@ def colortheme(item, theme):
     Used to read themes, which can be something like:
     [ [ pattern, colors, styles ], [ pattern ], [ pattern, colors ] ]
     """
+    logging.debug("use a theme with %i arguments" % len(theme))
     for args in theme:
         item = colorup(item, *args)
     return item
@@ -589,20 +600,23 @@ def __args_parse__(argv, usage=""):
                 on multiple lines).")
 
     parser.add_argument("-t", "--theme", action="store_true",
-            help="Interpret REGEX as a theme. \
-                Available themes: "+", ".join(themes.keys()))
+            help="Interpret REGEX as a theme.")# \
+                #Available themes: "+", ".join(themes.keys()))
+
+    parser.add_argument("--debug", action="store_true",
+            help="Debug mode: print what's going on internally, useful if you want to check what features are available.")
 
     parser.add_argument("-s", "--source", action="store_true",
             help="Interpret REGEX as a source code readable by the Pygments library. \
                 If the first letter of PATTERN is upper case, use the 256 colors mode, \
                 if it is lower case, use the 8 colors mode. \
-                Interpret COLOR as a Pygments style. \
-                Available languages: "+", ".join(lexers))
+                Interpret COLOR as a Pygments style.")# \
+                #Available languages: "+", ".join(lexers))
 
     args = parser.parse_args()
 
     return args.pattern[0], args.color, args.style, args.groups, \
-           args.colormap, args.theme, args.source, args.all, args.scale
+           args.colormap, args.theme, args.source, args.all, args.scale, args.debug
 
 
 def write_all( as_all, stream_in, stream_out, function, *args ):
@@ -617,22 +631,15 @@ def write_all( as_all, stream_in, stream_out, function, *args ):
 
 
 if __name__ == "__main__":
+
+    global debug
     error_codes = {"UnknownColor":1, "DuplicatedPalette":2}
-
-    try:
-        # Search for available resources files (themes, palettes)
-        # in the same dir as the colout.py script
-        res_dir = os.path.dirname(os.path.realpath(__file__))
-
-        # this must be called before args parsing, because the help can list available resources
-        load_resources( res_dir, res_dir )
-
-    except DuplicatedPalette as e:
-        print( "ERROR in colout, duplicated palette file name: %s" % e )
-        sys.exit( error_codes["DuplicatedPalette"] )
 
     usage = "A regular expression based formatter that color up an arbitrary text stream."
 
+    #####################
+    # Arguments parsing #
+    #####################
     try:
         import argparse
 
@@ -643,35 +650,66 @@ if __name__ == "__main__":
 
     # if argparse is available
     else:
-        pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale \
+        pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale, debug \
             = __args_parse__(sys.argv, usage)
+
+    if debug:
+        lvl = logging.DEBUG
+    else:
+        lvl = logging.ERROR
+
+    logging.basicConfig(format='[colout] %(levelname)s: %(message)s', level=lvl)
+
+
+    ##################
+    # Load resources #
+    ##################
+    try:
+        # Search for available resources files (themes, palettes)
+        # in the same dir as the colout.py script
+        res_dir = os.path.dirname(os.path.realpath(__file__))
+
+        # this must be called before args parsing, because the help can list available resources
+        load_resources( res_dir, res_dir )
+
+    except DuplicatedPalette as e:
+        logging.error( "duplicated palette file name: %s" % e )
+        sys.exit( error_codes["DuplicatedPalette"] )
+
 
     try:
         if myscale:
             scale = map(int,myscale.split(","))
+            logging.debug("user-defined scale: %i,%i" % (scale))
 
         # use the generator: output lines as they come
         if as_colormap is True and color != "rainbow":
             colormap = color.split(",")  # replace the colormap by the given colors
             color = "colormap"  # use the keyword to switch to colormap instead of list of colors
+            logging.debug("used-defined colormap: %s" % ",".join(colormap) )
 
         # if theme
         if as_theme:
+            logging.debug( "asked for theme: %s" % pattern )
             assert(pattern in themes.keys())
             write_all( as_all, sys.stdin, sys.stdout, colortheme, themes[pattern].theme() )
 
         # if pygments
         elif as_source:
+            logging.debug("asked for lexer: %s" % pattern.lower())
             assert(pattern.lower() in lexers)
             lexer = get_lexer_by_name(pattern.lower())
             # Python => 256 colors, python => 8 colors
             ask_256 = pattern[0].isupper()
             if ask_256:
+                logging.debug("256 colors mode")
                 try:
                     formatter = Terminal256Formatter(style=color)
                 except:  # style not found
+                    logging.warning("style %s not found, fallback to default style" % color)
                     formatter = Terminal256Formatter()
             else:
+                logging.debug("8 colors mode")
                 formatter = TerminalFormatter()
 
             write_all( as_all, sys.stdin, sys.stdout, highlight, lexer, formatter )
@@ -681,6 +719,6 @@ if __name__ == "__main__":
             write_all( as_all, sys.stdin, sys.stdout, colorup, pattern, color, style, on_groups )
 
     except UnknownColor as e:
-        print("ERROR in colout, unknown color: %s" % e )
+        logging.error("unknown color: %s" % e )
         sys.exit( error_codes["UnknownColor"] )
 

@@ -5,6 +5,7 @@
 # Licensed under the GPL version 3
 # 2012 (c) nojhan <nojhan@nojhan.net>
 
+import sys
 import re
 import random
 import os
@@ -330,15 +331,15 @@ def colortheme(item, theme):
     return item
 
 
-def write(colored):
+def write(colored, stream = sys.stdout):
     """
     Write "colored" on sys.stdout, then flush.
     """
-    sys.stdout.write(colored)
-    sys.stdout.flush()
+    stream.write(colored)
+    stream.flush()
 
 
-def map_write( stream, function, *args ):
+def map_write( stream_in, stream_out, function, *args ):
     """
     Read the given file-like object as a non-blocking stream
     and call the function on each item (line),
@@ -351,12 +352,12 @@ def map_write( stream, function, *args ):
     """
     while True:
         try:
-            item = stream.readline()
+            item = stream_in.readline()
         except KeyboardInterrupt:
             break
         if not item:
             break
-        write( function(item, *args) )
+        write( function(item, *args), stream_out )
 
 
 def colorgen(stream, pattern, color="red", style="normal", on_groups=False):
@@ -396,7 +397,6 @@ def __args_dirty__(argv, usage=""):
     >>> colout.__args_dirty__(["colout","pattern","colors","styles","True"],"usage")
     ('pattern', 'colors', 'styles', True)
     """
-    import sys
 
     # Use a dirty argument picker
     # Check for bad usage or an help flag
@@ -495,19 +495,18 @@ def __args_parse__(argv, usage=""):
            args.colormap, args.theme, args.source, args.all, args.scale
 
 
-def stdin_write( as_all, function, *args ):
+def write_all( as_all, stream_in, stream_out, function, *args ):
     """
     If as_all, print function(*args) on the whole stream,
     else, print it for each line.
     """
     if as_all:
-        write( function( sys.stdin.read(), *args ) )
+        write( function( stream_in.read(), *args ), stream_out )
     else:
-        map_write( sys.stdin, function, *args )
+        map_write( stream_in, stream_out, function, *args )
 
 
 if __name__ == "__main__":
-    import sys
 
     usage = "A regular expression based formatter that color up an arbitrary text stream."
 
@@ -535,7 +534,7 @@ if __name__ == "__main__":
     # if theme
     if as_theme:
         assert(pattern in themes.keys())
-        stdin_write( as_all, colortheme, themes[pattern].theme() )
+        write_all( as_all, sys.stdin, sys.stdout, colortheme, themes[pattern].theme() )
 
     # if pygments
     elif as_source:
@@ -551,9 +550,9 @@ if __name__ == "__main__":
         else:
             formatter = TerminalFormatter()
 
-        stdin_write( as_all, highlight, lexer, formatter )
+        write_all( as_all, sys.stdin, sys.stdout, highlight, lexer, formatter )
 
     # if color
     else:
-        stdin_write( as_all, colorup, pattern, color, style, on_groups )
+        write_all( as_all, sys.stdin, sys.stdout, colorup, pattern, color, style, on_groups )
 

@@ -54,6 +54,42 @@ def parse_gimp_palette( filename ):
     return name,palette
 
 
+def uniq( lst ):
+    """Build a list with uniques consecutive elements in the argument.
+
+        >>> uniq([1,1,2,2,2,3])
+        [1,2,3]
+        >>> uniq([0,1,1,2,3,3,3])
+        [0,1,2,3]
+    """
+    assert( len(lst) > 0 )
+    uniq = [ lst[0] ]
+    for i in range(1,len(lst)):
+        if lst[i] != lst[i-1]:
+            uniq.append(lst[i])
+    return uniq
+
+
+def rgb_to_ansi( red, green, blue ):
+    """Convert a RGB color to its closest 256-colors ANSI index"""
+    offset = 42.5
+    is_gray = True
+    while is_gray:
+        if red < offset or green < offset or blue < offset:
+            all_gray = red < offset and green < offset and blue < offset
+            is_gray = False
+        offset += 42.5
+
+    if all_gray:
+        val = ansi_max + round( (red + green + blue)/33.0 )
+        return int(val)
+    else:
+        val = ansi_min
+        for color,modulo in zip( [red, green, blue], [6*6, 6, 1] ):
+            val += round(6.0 * (color / 256.0)) * modulo
+        return int(val)
+
+
 ###############################################################################
 # Global variables
 ###############################################################################
@@ -112,7 +148,10 @@ for p in glob.iglob("*.gpl"):
     name,palette = parse_gimp_palette(p)
     if name in colormaps:
         raise Exception('Duplicated palette filename: %s' % name)
-    colormaps[name] = palette
+    # Convert the palette to ANSI
+    ansi_palette = [ rgb_to_ansi(r,g,b) for r,g,b in palette ]
+    # Compress it so that there isn't two consecutive identical colors
+    colormaps[name] = uniq( ansi_palette )
 
 # load available pygments lexers
 lexers = []
@@ -136,26 +175,6 @@ else:
 ###############################################################################
 # Library
 ###############################################################################
-
-def rgb_to_ansi( red, green, blue ):
-    """Convert a RGB color to its closest 256-colors ANSI index"""
-    offset = 42.5
-    is_gray = True
-    while is_gray:
-        if red < offset or green < offset or blue < offset:
-            all_gray = red < offset and green < offset and blue < offset
-            is_gray = False
-        offset += 42.5
-
-    if all_gray:
-        val = ansi_max + round( (red + green + blue)/33.0 )
-        return int(val)
-    else:
-        val = ansi_min
-        for color,modulo in zip( [red, green, blue], [6*6, 6, 1] ):
-            val += round(6.0 * (color / 256.0)) * modulo
-        return int(val)
-
 
 def colorin(text, color="red", style="normal"):
     """
@@ -223,10 +242,10 @@ def colorin(text, color="red", style="normal"):
 
     elif color in colormaps.keys():
         mode = 256
-        color_nb = rgb_to_ansi( *colormaps[color][colormap_idx] )
+        color_nb = colormaps[color][colormap_idx]
         color_code = str( color_nb )
 
-        if colormap_idx < len(colormaps[color]):
+        if colormap_idx < len(colormaps[color])-1:
             colormap_idx += 1
         else:
             colormap_idx = 0

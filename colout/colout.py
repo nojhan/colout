@@ -128,48 +128,70 @@ def rgb_rainbow( x, freq = 1.0/(256.0/math.pi) ):
     return ( red, green, blue )
 
 
-###############################################################################
-# Load available extern ressources
-###############################################################################
-
-# load available themes
-themes = {}
-themes_dir=os.path.dirname(os.path.realpath(__file__))
-os.chdir( themes_dir )
-
-for f in glob.iglob("colout_*.py"):
-    module = ".".join(f.split(".")[:-1]) # remove extension
-    name = "_".join(module.split("_")[1:]) # remove the prefix
-    themes[name] = importlib.import_module(module)
-
-# load available colormaps (GIMP palettes format)
-colormaps = {}
-for p in glob.iglob("*.gpl"):
-    name,palette = parse_gimp_palette(p)
-    if name in colormaps:
-        raise Exception('Duplicated palette filename: %s' % name)
-    # Convert the palette to ANSI
-    ansi_palette = [ rgb_to_ansi(r,g,b) for r,g,b in palette ]
-    # Compress it so that there isn't two consecutive identical colors
-    colormaps[name] = uniq( ansi_palette )
-
-# load available pygments lexers
-lexers = []
-try:
-    from pygments.lexers import get_all_lexers
-    from pygments.lexers import get_lexer_by_name
-    from pygments import highlight
-    from pygments.formatters import Terminal256Formatter
-    from pygments.formatters import TerminalFormatter
-except ImportError:
+class UnknownColor(Exception):
     pass
-else:
-    for lexer in get_all_lexers():
-        try:
-            lexers.append(lexer[1][0])
-        except IndexError:
-            pass
-    lexers.sort()
+
+class DuplicatedPalette(Exception):
+    pass
+
+
+###############################################################################
+# Load available extern resources
+###############################################################################
+
+def load_themes( themes_dir):
+    global themes
+    themes = {}
+    os.chdir( themes_dir )
+
+    # load available themes
+    for f in glob.iglob("colout_*.py"):
+        module = ".".join(f.split(".")[:-1]) # remove extension
+        name = "_".join(module.split("_")[1:]) # remove the prefix
+        themes[name] = importlib.import_module(module)
+
+
+def load_palettes( palettes_dir ):
+    global colormaps
+    colormaps = {}
+    os.chdir( palettes_dir )
+
+    # load available colormaps (GIMP palettes format)
+    for p in glob.iglob("*.gpl"):
+        name,palette = parse_gimp_palette(p)
+        if name in colormaps:
+            raise DuplicatedPalette(name)
+        # Convert the palette to ANSI
+        ansi_palette = [ rgb_to_ansi(r,g,b) for r,g,b in palette ]
+        # Compress it so that there isn't two consecutive identical colors
+        colormaps[name] = uniq( ansi_palette )
+
+
+def load_lexers():
+    global lexers
+    # load available pygments lexers
+    lexers = []
+    try:
+        from pygments.lexers import get_all_lexers
+        from pygments.lexers import get_lexer_by_name
+        from pygments import highlight
+        from pygments.formatters import Terminal256Formatter
+        from pygments.formatters import TerminalFormatter
+    except ImportError:
+        pass
+    else:
+        for lexer in get_all_lexers():
+            try:
+                lexers.append(lexer[1][0])
+            except IndexError:
+                pass
+        lexers.sort()
+
+
+def load_resources( themes_dir, palettes_dir ):
+    load_themes( themes_dir )
+    load_palettes( palettes_dir )
+    load_lexers()
 
 
 ###############################################################################
@@ -316,7 +338,7 @@ def colorin(text, color="red", style="normal"):
 
     # unrecognized
     else:
-        raise Exception('Unrecognized color %s' % color)
+        raise UnknownColor(color)
 
     return start + style_code + endmarks[mode] + color_code + "m" + text + stop
 
@@ -595,6 +617,19 @@ def write_all( as_all, stream_in, stream_out, function, *args ):
 
 
 if __name__ == "__main__":
+    error_codes = {"UnknownColor":1, "DuplicatedPalette":2}
+
+    try:
+        # Search for available resources files (themes, palettes)
+        # in the same dir as the colout.py script
+        res_dir = os.path.dirname(os.path.realpath(__file__))
+
+        # this must be called before args parsing, because the help can list available resources
+        load_resources( res_dir, res_dir )
+
+    except DuplicatedPalette as e:
+        print( "ERROR in colout, duplicated palette file name: %s" % e )
+        sys.exit( error_codes["DuplicatedPalette"] )
 
     usage = "A regular expression based formatter that color up an arbitrary text stream."
 
@@ -611,36 +646,41 @@ if __name__ == "__main__":
         pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale \
             = __args_parse__(sys.argv, usage)
 
-    if myscale:
-        scale = map(int,myscale.split(","))
+    try:
+        if myscale:
+            scale = map(int,myscale.split(","))
 
-    # use the generator: output lines as they come
-    if as_colormap is True and color != "rainbow":
-        colormap = color.split(",")  # replace the colormap by the given colors
-        color = "colormap"  # use the keyword to switch to colormap instead of list of colors
+        # use the generator: output lines as they come
+        if as_colormap is True and color != "rainbow":
+            colormap = color.split(",")  # replace the colormap by the given colors
+            color = "colormap"  # use the keyword to switch to colormap instead of list of colors
 
-    # if theme
-    if as_theme:
-        assert(pattern in themes.keys())
-        write_all( as_all, sys.stdin, sys.stdout, colortheme, themes[pattern].theme() )
+        # if theme
+        if as_theme:
+            assert(pattern in themes.keys())
+            write_all( as_all, sys.stdin, sys.stdout, colortheme, themes[pattern].theme() )
 
-    # if pygments
-    elif as_source:
-        assert(pattern.lower() in lexers)
-        lexer = get_lexer_by_name(pattern.lower())
-        # Python => 256 colors, python => 8 colors
-        ask_256 = pattern[0].isupper()
-        if ask_256:
-            try:
-                formatter = Terminal256Formatter(style=color)
-            except:  # style not found
-                formatter = Terminal256Formatter()
+        # if pygments
+        elif as_source:
+            assert(pattern.lower() in lexers)
+            lexer = get_lexer_by_name(pattern.lower())
+            # Python => 256 colors, python => 8 colors
+            ask_256 = pattern[0].isupper()
+            if ask_256:
+                try:
+                    formatter = Terminal256Formatter(style=color)
+                except:  # style not found
+                    formatter = Terminal256Formatter()
+            else:
+                formatter = TerminalFormatter()
+
+            write_all( as_all, sys.stdin, sys.stdout, highlight, lexer, formatter )
+
+        # if color
         else:
-            formatter = TerminalFormatter()
+            write_all( as_all, sys.stdin, sys.stdout, colorup, pattern, color, style, on_groups )
 
-        write_all( as_all, sys.stdin, sys.stdout, highlight, lexer, formatter )
-
-    # if color
-    else:
-        write_all( as_all, sys.stdin, sys.stdout, colorup, pattern, color, style, on_groups )
+    except UnknownColor as e:
+        print("ERROR in colout, unknown color: %s" % e )
+        sys.exit( error_codes["UnknownColor"] )
 

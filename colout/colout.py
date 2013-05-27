@@ -137,6 +137,9 @@ class UnknownColor(Exception):
 class DuplicatedPalette(Exception):
     pass
 
+class DuplicatedTheme(Exception):
+    pass
+
 
 ###############################################################################
 # Load available extern resources
@@ -151,6 +154,8 @@ def load_themes( themes_dir):
     for f in glob.iglob("colout_*.py"):
         module = ".".join(f.split(".")[:-1]) # remove extension
         name = "_".join(module.split("_")[1:]) # remove the prefix
+        if name in themes:
+            raise DuplicatedTheme(name)
         logging.debug("load theme %s" % name)
         themes[name] = importlib.import_module(module)
 
@@ -574,14 +579,12 @@ def __args_parse__(argv, usage=""):
 
     parser.add_argument("color", metavar="COLOR", type=str, nargs='?',
             default="red",
-            help="A number in [0…255], one of the available colors or a comma-separated list of values. \
-                Available colors: "+", ".join(colors)+ \
-                ". Available special colors: none, random, Random, rainbow, Rainbow, scale")
+            help="A number in [0…255], a color name, a colormap name, \
+            a palette or a comma-separated list of those values.")
 
     parser.add_argument("style", metavar="STYLE", type=str, nargs='?',
             default="bold",
-            help="One of the available styles or a comma-separated list of styles.\
-                Available styles: "+", ".join(styles))
+            help="One of the available styles or a comma-separated list of styles.")
 
     parser.add_argument("-g", "--groups", action="store_true",
             help="For color maps (random, rainbow), iterate over matching groups \
@@ -602,6 +605,12 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("-t", "--theme", action="store_true",
             help="Interpret REGEX as a theme.")
 
+    parser.add_argument("-T", "--themes-dir", metavar="DIR", action="append", type=list, default="",
+            help="Search for additional themes (colout_*.py files) in this directory")
+
+    parser.add_argument("-P", "--palettes-dir", metavar="DIR", action="append", type=list, default="",
+            help="Search for additional palettes (*.gpl files) in this directory")
+
     parser.add_argument("-r", "--resources", action="store_true",
             help="Print the names of all available colors, styles, themes and palettes.")
 
@@ -617,7 +626,8 @@ def __args_parse__(argv, usage=""):
     args = parser.parse_args()
 
     return args.pattern[0], args.color, args.style, args.groups, \
-           args.colormap, args.theme, args.source, args.all, args.scale, args.debug, args.resources
+           args.colormap, args.theme, args.source, args.all, args.scale, args.debug, args.resources, args.palettes_dir, \
+           args.themes_dir
 
 
 def write_all( as_all, stream_in, stream_out, function, *args ):
@@ -651,7 +661,8 @@ if __name__ == "__main__":
 
     # if argparse is available
     else:
-        pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale, debug, resources \
+        pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale, \
+        debug, resources, palettes_dirs, themes_dirs \
             = __args_parse__(sys.argv, usage)
 
     if debug:
@@ -673,6 +684,15 @@ if __name__ == "__main__":
         # this must be called before args parsing, because the help can list available resources
         load_resources( res_dir, res_dir )
 
+        # try additional directories if asked
+        if palettes_dirs:
+            for adir in palettes_dirs:
+                load_palettes( adir )
+
+        if themes_dirs:
+            for adir in themes_dirs:
+                load_themes( adir )
+
     except DuplicatedPalette as e:
         logging.error( "duplicated palette file name: %s" % e )
         sys.exit( error_codes["DuplicatedPalette"] )
@@ -681,6 +701,7 @@ if __name__ == "__main__":
         print("Available resources:")
         print("STYLES: %s" % ", ".join(styles) )
         print("COLORS: %s" % ", ".join(colors) )
+        print("COLORMAPS: %s" % ", ".join(["random", "Random", "rainbow", "Rainbow", "scale", "colormap"]) )
 
         if len(themes) > 0:
             print("THEMES: %s" % ", ".join(themes.keys()) )

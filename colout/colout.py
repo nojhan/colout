@@ -41,11 +41,17 @@ def parse_gimp_palette( filename ):
 
     # Then the columns number.
     # split on colon, take the second argument as an int
-    columns = int( fd.readline().strip().split(":")[1].strip() )
+    line = fd.readline()
+    if "Columns:" in line:
+        columns = int( line.strip().split(":")[1].strip() )
+        lines = fd.readlines()
+    else:
+        columns=3
+        lines = [line] + fd.readlines()
 
     # Then the colors themselves.
     palette = []
-    for line in fd:
+    for line in lines:
         # skip lines with only a comment
         if re.match("^\s*#.*$", line ):
             continue
@@ -122,6 +128,9 @@ endmarks = {8: ";", 256: ";38;5;"}
 ansi_min = 16
 ansi_max = 232
 
+themes = {}
+colormaps = {}
+
 def rgb_rainbow( x, freq = 1.0/(256.0/math.pi) ):
     """Analytical expression of a n-colors rainbow colormap"""
     scope = (ansi_max - ansi_min)/2.0
@@ -147,7 +156,7 @@ class DuplicatedTheme(Exception):
 
 def load_themes( themes_dir):
     global themes
-    themes = {}
+    logging.debug("search for themes in: %s" % themes_dir)
     os.chdir( themes_dir )
 
     # load available themes
@@ -162,12 +171,16 @@ def load_themes( themes_dir):
 
 def load_palettes( palettes_dir ):
     global colormaps
-    colormaps = {}
+    logging.debug("search for palettes in: %s" % palettes_dir)
     os.chdir( palettes_dir )
 
     # load available colormaps (GIMP palettes format)
     for p in glob.iglob("*.gpl"):
-        name,palette = parse_gimp_palette(p)
+        try:
+            name,palette = parse_gimp_palette(p)
+        except Exception as e:
+            logging.warning("error while parsing palette %s: %s" % ( p,e ) )
+            continue
         if name in colormaps:
             raise DuplicatedPalette(name)
         # Convert the palette to ANSI
@@ -605,10 +618,10 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("-t", "--theme", action="store_true",
             help="Interpret REGEX as a theme.")
 
-    parser.add_argument("-T", "--themes-dir", metavar="DIR", action="append", type=list, default="",
+    parser.add_argument("-T", "--themes-dir", metavar="DIR", action="append",
             help="Search for additional themes (colout_*.py files) in this directory")
 
-    parser.add_argument("-P", "--palettes-dir", metavar="DIR", action="append", type=list, default="",
+    parser.add_argument("-P", "--palettes-dir", metavar="DIR", action="append",
             help="Search for additional palettes (*.gpl files) in this directory")
 
     parser.add_argument("-r", "--resources", action="store_true",
@@ -687,11 +700,23 @@ if __name__ == "__main__":
         # try additional directories if asked
         if palettes_dirs:
             for adir in palettes_dirs:
-                load_palettes( adir )
+                try:
+                    os.chdir( adir )
+                except OSError as e:
+                    logging.warning("cannot read palettes directory %s, ignore it" % adir)
+                    continue
+                else:
+                    load_palettes( adir )
 
         if themes_dirs:
             for adir in themes_dirs:
-                load_themes( adir )
+                try:
+                    os.chdir( adir )
+                except OSError as e:
+                    logging.warning("cannot read themes directory %s, ignore it" % adir)
+                    continue
+                else:
+                    load_themes( adir )
 
     except DuplicatedPalette as e:
         logging.error( "duplicated palette file name: %s" % e )
@@ -708,15 +733,15 @@ if __name__ == "__main__":
         else:
             print("NO THEME")
 
-        if len(lexers) > 0:
-            print("LEXERS: %s" % ", ".join(lexers) )
-        else:
-            print("NO LEXER")
-
         if len(colormaps) > 0:
             print("PALETTES: %s" % ", ".join(colormaps) )
         else:
             print("NO PALETTE")
+
+        if len(lexers) > 0:
+            print("LEXERS: %s" % ", ".join(lexers) )
+        else:
+            print("NO LEXER")
 
         sys.exit(0) # not an error, we asked for help
 

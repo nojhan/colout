@@ -79,8 +79,12 @@ def uniq( lst ):
     return uniq
 
 
-def rgb_to_ansi( red, green, blue ):
+def rgb_to_ansi( r, g, b ):
     """Convert a RGB color to its closest 256-colors ANSI index"""
+    # 234 is the higher possible RGB value for ANSI colors
+    # limit RGB values to 234
+    red,green,blue = tuple([234 if c>234 else c for c in (r,g,b)])
+
     offset = 42.5
     is_gray = True
     while is_gray:
@@ -91,12 +95,14 @@ def rgb_to_ansi( red, green, blue ):
 
     if all_gray:
         val = ansi_max + round( (red + green + blue)/33.0 )
-        return int(val)
+        res = int(val)
     else:
         val = ansi_min
         for color,modulo in zip( [red, green, blue], [6*6, 6, 1] ):
             val += round(6.0 * (color / 256.0)) * modulo
-        return int(val)
+        res = int(val)
+
+    return res
 
 
 def hex_to_rgb(h):
@@ -247,6 +253,9 @@ def colorin(text, color="red", style="normal"):
     >>> colout.colorin("Faites chier la vache", 41, "normal")
     '\x1b[0;38;5;41mFaites chier la vache\x1b[0m'
     """
+
+    assert( type(color) is str )
+
     global colormap_idx
 
     # Special characters.

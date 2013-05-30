@@ -20,7 +20,8 @@ If you ask for less colors, the last one will be duplicated across remaining
 groups.
 
 Available colors are: blue, black, yellow, cyan, green, magenta, white, red,
-rainbow, random, Random, scale, none or any number between 0 and 255.
+rainbow, random, Random, scale, none, an RGB hexadecimal triplet or any number
+between 0 and 255.
 
 Available styles are: normal, bold, faint, italic, underline, blink,
 rapid_blink, reverse, conceal or random (some styles may have no effect, depending
@@ -38,9 +39,11 @@ below, [0-100] by default).
 If the python-pygments library is installed, you can use the name of a
 syntax-coloring "lexer" as a color (for example: "Cpp", "ruby", "xml+django", etc.).
 
-If GIMP palettes files (*.gpl) are available, you can also use their names
-as a colormap. Note that the RGB colors will be converted to their nearest ANSI
-256-colors mode equivalents (see the `-P` switch below).
+If GIMP palettes files (*.gpl) are available, you can also use their names as a
+colormap (see the `-P` switch below).
+
+Note that the RGB colors (either the hex triplets or the palettes's colors) will
+be converted to their nearest ANSI 256-colors mode equivalents.
 
 When not specified, a *COLOR* defaults to _red_ and a *STYLE* defaults to _bold_.
 

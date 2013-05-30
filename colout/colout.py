@@ -99,6 +99,13 @@ def rgb_to_ansi( red, green, blue ):
         return int(val)
 
 
+def hex_to_rgb(h):
+    assert( h[0] == "#" )
+    h = h.lstrip('#')
+    lh = len(h)
+    return tuple( int(h[i:i+lh//3], 16) for i in range(0, lh, lh//3) )
+
+
 ###############################################################################
 # Global variables
 ###############################################################################
@@ -338,6 +345,13 @@ def colorin(text, color="red", style="normal"):
     elif color in colors:
         mode = 8
         color_code = str(30 + colors[color])
+
+    # hexadecimal color
+    elif color[0] == "#":
+        mode = 256
+        color_nb = rgb_to_ansi(*hex_to_rgb(color))
+        assert(0 <= color_nb <= 255)
+        color_code = str(color_nb)
 
     # 256 colors mode
     elif color.isdigit():

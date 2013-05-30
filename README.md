@@ -3,12 +3,12 @@ colout(1) -- Color Up Arbitrary Command Ouput
 
 ## SYNOPSIS
 
-`colout` [-h] [-e] [-g] [-t] [-s] [-l] PATTERN [COLOR(S)] [STYLE(S)]
+`colout` [-h] [-g] [-c] [-l] [-a] [-t] [-T] [-s] PATTERN [COLOR(S)] [STYLE(S)]
 
 
 ## DESCRIPTION
 
-`colout` read lines of text stream on the standard input and output characters 
+`colout` read lines of text stream on the standard input and output characters
 matching a given regular expression *PATTERN* in given <COLOR> and *STYLE*.
 
 If groups are specified in the regular expression pattern, only them are taken
@@ -23,7 +23,8 @@ Available colors are: blue, black, yellow, cyan, green, magenta, white, red,
 rainbow, random, Random, scale, none or any number between 0 and 255.
 
 Available styles are: normal, bold, faint, italic, underline, blink,
-rapid_blink, reverse, conceal or random.
+rapid_blink, reverse, conceal or random (some styles may have no effect, depending
+on your terminal).
 
 `Random` will color each matching pattern with a random color among the 255
 available in the ANSI table. `random` will do the same in 8 colors mode.
@@ -31,8 +32,15 @@ available in the ANSI table. `random` will do the same in 8 colors mode.
 `rainbow` will cycle over a 8 colors rainbow at each matching pattern.
 
 `scale` will parse the matching text as a decimal number and apply the rainbow
-colormap according to its position on a scale defined by the `-l` option (see
+colormap according to its position on the scale defined by the `-l` option (see
 below, [0-100] by default).
+
+If the python-pygments library is installed, you can use the name of a
+syntax-coloring "lexer" as a color (for example: "Cpp", "ruby", "xml+django", etc.).
+
+If GIMP palettes files (*.gpl) are available, you can also use their names
+as a colormap. Note that the RGB colors will be converted to their nearest ANSI
+256-colors mode equivalents (see the `-P` switch below).
 
 When not specified, a *COLOR* defaults to _red_ and a *STYLE* defaults to _bold_.
 
@@ -42,7 +50,11 @@ When not specified, a *COLOR* defaults to _red_ and a *STYLE* defaults to _bold_
 If the python-pygments library is available, `colout` can be used as an interface
 to it (see also the `-s` switch below).
 
+To have a list of all colors, styles, special colormaps, themes, palettes and lexers,
+use the `-r` switch (see below).
+
 `colout` is released under the GNU Public License v3.
+
 
 ## INSTALLATION
 
@@ -52,12 +64,13 @@ and then soft link `/usr/local/bin/colout` to your colout.py under your installa
 
     /usr/local/lib/python2.7/dist-packages/colout-0.1-py2.7.egg/colout/colout.py
 
+
 ## OTHER INSTALLATION METHOD
 
 Pypi(the Python Package Index)
 
     sudo pip install colout
-    
+
 or
 
     sudo easy_install colout
@@ -86,7 +99,7 @@ Gentoo overlay
 
     3. Edit `$EPREFIX/var/lib/layman/my-list.xml`.  The content of this file should be:
     
-    <?xml version="1.0" ?>                                                           
+    <?xml version="1.0" ?>
     <repositories version="1.0">
     <repo priority="50" quality="experimental" status="unofficial">
         <name>dongwm-overlay</name>
@@ -94,15 +107,15 @@ Gentoo overlay
         <homepage>https://github.com/dongweiming/dongwm-overlay.git</homepage>
         <owner>
             <email>ciici1234@hotmail.com</email>
-        </owner>        
-        <source type="git">git://github.com/dongweiming/dongwm-overlay.git</source>             
+        </owner>
+        <source type="git">git://github.com/dongweiming/dongwm-overlay.git</source>
     </repo>
     </repositories>
 
     4. Add this overlay and installation
     
     layman -a dongwm-overlay && sudo emerge colout
-    
+
 
 ## OPTIONS
 
@@ -115,21 +128,37 @@ Gentoo overlay
 * `-c`, `--colormap`:
   Use the given list of comma-separated colors as a colormap (cycle the colors at each match).
 
-* `-l`, `--scale`:
+* `-a`, `--all`
+  Color the whole input at once instead of line per line (really useful
+for coloring a source code file with strings on multiple lines).
+
+* `-l min,max`, `--scale min,max`:
   When using the 'scale' colormap, parse matches as decimal numbers (taking your locale into account)
-  and apply the rainbow colormap linearly between the given SCALE=min,max (SCALE=0,100, by default).
+  and apply the rainbow colormap linearly between the given min,max (0,100, by default).
 
 * `-a`, `--all`:
   Color the whole input at once instead of line per line
   (really useful for coloring a source code file with strings on multiple lines).
 
 * `-t`, `--theme`:
-  Interpret PATTERN as a predefined theme (perm, cmake, g++, etc.)
+  Interpret PATTERN as a predefined theme (perm, cmake, g++, etc.).
+
+* `-T DIR`, `--themes-dir DIR`:
+  Search for additional themes (colout_*.py files) in this directory.
+
+* `-P DIR`, `--palettes-dir DIR`:
+  Search for additional palettes (*.gpl files) in this directory.
+
+* `-r`, `--resources`:
+  Print the names of all available colors, styles, themes and palettes.
 
 * `-s`, `--source`:
   Interpret PATTERN as a source code readable by the Pygments library. If the first letter of PATTERN
   is upper case, use the 256 colors mode, if it is lower case, use the 8 colors mode.
   In 256 colors, interpret COLOR as a Pygments style (e.g. "default").
+
+* `--debug`:
+  Debug mode: print what's going on internally, if you want to check what features are available.
 
 
 ## REGULAR EXPRESSIONS

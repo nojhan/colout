@@ -751,7 +751,7 @@ if __name__ == "__main__":
 
     try:
         if myscale:
-            scale = map(int,myscale.split(","))
+            scale = map(float,myscale.split(","))
             logging.debug("user-defined scale: %i,%i" % (scale))
 
         # use the generator: output lines as they come

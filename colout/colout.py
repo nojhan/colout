@@ -81,9 +81,9 @@ def uniq( lst ):
 
 def rgb_to_ansi( r, g, b ):
     """Convert a RGB color to its closest 256-colors ANSI index"""
-    # 234 is the higher possible RGB value for ANSI colors
-    # limit RGB values to 234
-    red,green,blue = tuple([234 if c>234 else c for c in (r,g,b)])
+    # ansi_max is the higher possible RGB value for ANSI colors
+    # limit RGB values to ansi_max
+    red,green,blue = tuple([ansi_max if c>ansi_max else c for c in (r,g,b)])
 
     offset = 42.5
     is_gray = True
@@ -116,6 +116,12 @@ def hex_to_rgb(h):
 # Global variables
 ###############################################################################
 
+# Escaped end markers for given color modes
+endmarks = {8: ";", 256: ";38;5;"}
+
+ansi_min = 16
+ansi_max = 234
+
 # Available styles
 styles = {
     "normal": 0, "bold": 1, "faint": 2, "italic": 3, "underline": 4,
@@ -129,29 +135,25 @@ colors = {
     "magenta": 5, "cyan": 6, "white": 7, "none": -1
 }
 
-rainbow = ["magenta", "blue", "cyan", "green", "yellow", "red"]
-colormap = rainbow  # default colormap to rainbow
+themes = {}
+
+# pre-defined colormaps
+# 8-colors mode should start with a lower-case letter (and can contains either named or indexed colors)
+# 256-colors mode should start with an upper-case letter (and should contains indexed colors)
+colormaps = {
+    # Rainbows
+    "rainbow" : ["magenta", "blue", "cyan", "green", "yellow", "red"],
+    "Rainbow" : [92, 93, 57, 21, 27, 33, 39, 45, 51, 50, 49, 48, 47, 46, 82, 118, 154, 190, 226, 220, 214, 208, 202, 196],
+
+    # from magenta to red, with white in the middle
+    "spectrum" : ["magenta", "blue", "cyan", "white", "green", "yellow", "red"],
+    "Spectrum" : [91, 92, 56, 57, 21, 27, 26, 32, 31, 37, 36, 35, 41, 40, 41, 77, 83, 84, 120, 121, 157, 194, 231, 254, 255, 231, 230, 229, 228, 227, 226, 220, 214, 208, 202, 196]
+} # colormaps
+
+colormap = colormaps["rainbow"]  # default colormap to rainbow
 colormap_idx = 0
 
 scale = (0,100)
-
-# Escaped end markers for given color modes
-endmarks = {8: ";", 256: ";38;5;"}
-
-ansi_min = 16
-ansi_max = 232
-
-themes = {}
-colormaps = {}
-
-def rgb_rainbow( x, freq = 1.0/(256.0/math.pi) ):
-    """Analytical expression of a n-colors rainbow colormap"""
-    scope = (ansi_max - ansi_min)/2.0
-    red   = ansi_min + scope * (1+math.sin( 2*freq*x + math.pi/2 ))
-    green = ansi_min + scope * (1+math.sin( 2*freq*x - math.pi/2 ))
-    blue  = ansi_min + scope * (1+math.sin(   freq*x - math.pi/2 ))
-    return ( red, green, blue )
-
 
 class UnknownColor(Exception):
     pass
@@ -200,7 +202,7 @@ def load_palettes( palettes_dir ):
         ansi_palette = [ rgb_to_ansi(r,g,b) for r,g,b in palette ]
         # Compress it so that there isn't two consecutive identical colors
         compressed = uniq(ansi_palette)
-        logging.debug("load %i ANSI colors in palette %s" % (len(compressed), name))
+        logging.debug("load %i ANSI colors in palette %s: %s" % (len(compressed), name, compressed))
         colormaps[name] = compressed
 
 
@@ -286,37 +288,26 @@ def colorin(text, color="red", style="normal"):
         color_nb = random.randint(0, 255)
         color_code = str(color_nb)
 
-    elif color == "rainbow":
-        mode = 8
-        color = colormap[colormap_idx]
-        color_code = str(30 + colors[color])
-
-        if colormap_idx < len(colormap)-1:
-            colormap_idx += 1
-        else:
-            colormap_idx = 0
-
-    elif color == "Rainbow":
-        mode = 256
-        color_nb = rgb_to_ansi( *rgb_rainbow( colormap_idx ) )
-        color_code = str( color_nb )
-
-        if colormap_idx < 255:
-            colormap_idx += 1
-        else:
-            colormap_idx = 0
-
     elif color in colormaps.keys():
-        mode = 256
-        color_nb = colormaps[color][colormap_idx]
-        color_code = str( color_nb )
+        if color[0].islower(): # lower case first letter
+            mode = 8
+            c = colormaps[color][colormap_idx]
+            if c.isdigit():
+                color_code = str(30 + c)
+            else:
+                color_code = str(30 + colors[c])
+
+        else: # upper case
+            mode = 256
+            color_nb = colormaps[color][colormap_idx]
+            color_code = str( color_nb )
 
         if colormap_idx < len(colormaps[color])-1:
             colormap_idx += 1
         else:
             colormap_idx = 0
 
-    elif color == "scale":
+    elif color.lower() == "scale": # "scale" or "Scale"
         try:
             import babel.numbers as bn
             f = float(bn.parse_decimal(text))
@@ -327,13 +318,25 @@ def colorin(text, color="red", style="normal"):
         if f < scale[0] or f > scale[1]:
             return text
 
-        # normalize and scale over the nb of colors in colormap
-        i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(colormap)-1) ) )
+        if color[0].islower():
+            mode = 8
+            cmap = colormaps["spectrum"]
 
-        mode = 8
-        color = colormap[i]
-        color_code = str(30 + colors[color])
+            # normalize and scale over the nb of colors in cmap
+            i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
 
+            color = cmap[i]
+            color_code = str(30 + colors[color])
+
+        else:
+            mode = 256
+            cmap = colormaps["Spectrum"]
+            i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
+            color = cmap[i]
+            color_code = str(color)
+
+    # Really useful only when using colout as a library
+    # thus you can change the "colormap" variable to your favorite one before calling colorin
     elif color == "colormap":
         color = colormap[colormap_idx]
         if color in colors:
@@ -749,7 +752,7 @@ if __name__ == "__main__":
         print("Available resources:")
         print("STYLES: %s" % ", ".join(styles) )
         print("COLORS: %s" % ", ".join(colors) )
-        print("COLORMAPS: %s" % ", ".join(["random", "Random", "rainbow", "Rainbow", "scale", "colormap"]) )
+        print("SPECIAL: %s" % ", ".join(["random", "Random", "scale", "Scale", "colormap"]) )
 
         if len(themes) > 0:
             print("THEMES: %s" % ", ".join(themes.keys()) )
@@ -757,9 +760,9 @@ if __name__ == "__main__":
             print("NO THEME")
 
         if len(colormaps) > 0:
-            print("PALETTES: %s" % ", ".join(colormaps) )
+            print("COLORMAPS: %s" % ", ".join(colormaps) )
         else:
-            print("NO PALETTE")
+            print("NO COLORMAPS")
 
         if len(lexers) > 0:
             print("LEXERS: %s" % ", ".join(lexers) )
@@ -774,8 +777,8 @@ if __name__ == "__main__":
 
     try:
         if myscale:
-            scale = map(float,myscale.split(","))
-            logging.debug("user-defined scale: %i,%i" % (scale))
+            scale = tuple([float(i) for i in myscale.split(",")])
+            logging.debug("user-defined scale: %f,%f" % scale)
 
         # use the generator: output lines as they come
         if as_colormap is True and color != "rainbow":

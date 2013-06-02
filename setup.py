@@ -48,7 +48,7 @@ setup(
     scripts=['bin/colout'],
     include_package_data=True,
     install_requires=requires,
-    license="GPL 3",
+    license="GPL-3",
     classifiers = filter(None, classifiers.split("\n")),
     zip_safe=False,
 )

@@ -211,11 +211,19 @@ def load_lexers():
     # load available pygments lexers
     lexers = []
     try:
-        from pygments.lexers import get_all_lexers
+        global get_lexer_by_name
         from pygments.lexers import get_lexer_by_name
+
+        global highlight
         from pygments import highlight
+
+        global Terminal256Formatter
         from pygments.formatters import Terminal256Formatter
+
+        global TerminalFormatter
         from pygments.formatters import TerminalFormatter
+
+        from pygments.lexers import get_all_lexers
     except ImportError:
         logging.warning("the pygments module has not been found, syntax coloring is not available")
         pass
@@ -490,7 +498,7 @@ def colortheme(item, theme):
     Used to read themes, which can be something like:
     [ [ pattern, colors, styles ], [ pattern ], [ pattern, colors ] ]
     """
-    logging.debug("use a theme with %i arguments" % len(theme))
+    # logging.debug("use a theme with %i arguments" % len(theme))
     for args in theme:
         item = colorup(item, *args)
     return item

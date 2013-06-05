@@ -3,7 +3,9 @@ colout(1) -- Color Up Arbitrary Command Ouput
 
 ## SYNOPSIS
 
-`colout` [-h] [-g] [-c] [-l] [-a] [-t] [-T] [-s] PATTERN [COLOR(S)] [STYLE(S)]
+`colout` [-h] [-r]
+
+`colout` [-g] [-c] [-l] [-a] [-t] [-T] [-P] [-s] PATTERN [COLOR(S) [STYLE(S)]]
 
 
 ## DESCRIPTION

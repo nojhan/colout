@@ -259,6 +259,7 @@ def colorin(text, color="red", style="normal"):
     assert( type(color) is str )
 
     global colormap_idx
+    global debug
 
     # Special characters.
     start = "\033["
@@ -276,7 +277,10 @@ def colorin(text, color="red", style="normal"):
 
     if color == "none":
         # if no color, style cannot be applied
-        return text
+        if not debug:
+            return text
+        else:
+            return "<none>"+text+"</none>"
 
     elif color == "random":
         mode = 8
@@ -388,13 +392,19 @@ def colorin(text, color="red", style="normal"):
             formatter = TerminalFormatter(bg=style)
             # We should return all but the last character,
             # because Pygments adds a newline char.
-        return highlight(text, lexer, formatter)[:-1]
+        if not debug:
+            return highlight(text, lexer, formatter)[:-1]
+        else:
+            return "<"+color+">"+ highlight(text, lexer, formatter)[:-1] + "</"+color+">"
 
     # unrecognized
     else:
         raise UnknownColor(color)
 
-    return start + style_code + endmarks[mode] + color_code + "m" + text + stop
+    if not debug:
+        return start + style_code + endmarks[mode] + color_code + "m" + text + stop
+    else:
+        return start + style_code + endmarks[mode] + color_code + "m<" + color + ">" + text + "</" + color + ">" + stop
 
 
 def colorout(text, match, prev_end, color="red", style="normal", group=0):

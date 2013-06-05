@@ -183,6 +183,11 @@ Recommended packages :
 * `babel` for a locale-aware number parsing
 
 
+## LIMITATIONS
+
+Don't use nested groups or colout will duplicate the corresponding input text with each matching colors.
+
+
 ## EXAMPLES
 
 * Color in bold red every occurence of the word _color_ in colout sources:

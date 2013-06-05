@@ -444,7 +444,11 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False):
     '\x1b[1;34mF\x1b[0m\x1b[3;34maites\x1b[0m \x1b[1;34mC\x1b[0m\x1b[3;34mhier\x1b[0m la Vache'
     """
     global colormap_idx
-    regex = re.compile(pattern)  # , re.IGNORECASE)
+
+    if not debug:
+        regex = re.compile(pattern)
+    else:
+        regex = re.compile(pattern, re.DEBUG)
 
     # Prepare the colored text.
     colored_text = ""

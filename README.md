@@ -29,14 +29,16 @@ Available styles are: normal, bold, faint, italic, underline, blink,
 rapid_blink, reverse, conceal or random (some styles may have no effect, depending
 on your terminal).
 
+`rainbow` will cycle over a 8 colors rainbow at each matching pattern.
+`Rainbow` will do the same over 24 colors (necessitate a terminal compatible
+with 256-colors mode).
+
 `Random` will color each matching pattern with a random color among the 255
 available in the ANSI table. `random` will do the same in 8 colors mode.
 
-`rainbow` will cycle over a 8 colors rainbow at each matching pattern.
-
-`scale` will parse the matching text as a decimal number and apply the rainbow
-colormap according to its position on the scale defined by the `-l` option (see
-below, [0-100] by default).
+`scale` (8 colors) and `Scale` (36 colors) will parse the matching text as
+a decimal number and apply the rainbow colormap according to its position
+on the scale defined by the `-l` option (see below, "0,100" by default).
 
 If the python-pygments library is installed, you can use the name of a
 syntax-coloring "lexer" as a color (for example: "Cpp", "ruby", "xml+django", etc.).

@@ -7,7 +7,6 @@ colout(1) -- Color Up Arbitrary Command Ouput
 
 `colout` [-g] [-c] [-l] [-a] [-t] [-T] [-P] [-s] PATTERN [COLOR(S) [STYLE(S)]]
 
-
 ## DESCRIPTION
 
 `colout` read lines of text stream on the standard input and output characters
@@ -88,41 +87,9 @@ Ubuntu 13.04's ppa
     sudo apt-get update
     sudo apt-get/aptitude install colout
 
-Gentoo overlay
+Gentoo
 
-    1. Install layman
-    
-    echo "app-portage/layman git" >> $EPREFIX/etc/portage/package.Use
-    sudo emerge layman
-    
-    2. Edit `$EPREFIX/etc/layman/layman.cfg`. Add a line after
-    
-    overlays   : http://www.gentoo.org/proj/en/overlays/repositories.xml
-    
-    so that it becomes
-    
-    overlays   : http://www.gentoo.org/proj/en/overlays/repositories.xml
-                 file://$EPREFIX/var/lib/layman/my-list.xml
-
-    3. Edit `$EPREFIX/var/lib/layman/my-list.xml`.  The content of this file should be:
-    
-    <?xml version="1.0" ?>
-    <repositories version="1.0">
-    <repo priority="50" quality="experimental" status="unofficial">
-        <name>dongwm-overlay</name>
-        <description>dongweiming's gentoo overlay</description>
-        <homepage>https://github.com/dongweiming/dongwm-overlay.git</homepage>
-        <owner>
-            <email>ciici1234@hotmail.com</email>
-        </owner>
-        <source type="git">git://github.com/dongweiming/dongwm-overlay.git</source>
-    </repo>
-    </repositories>
-
-    4. Add this overlay and installation
-    
-    layman -a dongwm-overlay && sudo emerge colout
-
+    sudo emerge colout
 
 ## OPTIONS
 

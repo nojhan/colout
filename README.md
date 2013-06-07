@@ -61,11 +61,11 @@ use the `-r` switch (see below).
 
 ## INSTALLATION
 
-    sudo python setup.py install
+    sudo python3 setup.py install
 
 and then soft link `/usr/local/bin/colout` to your colout.py under your installaion directory, which usually like
 
-    /usr/local/lib/python2.7/dist-packages/colout-0.1-py2.7.egg/colout/colout.py
+    /usr/local/lib/python3/dist-packages/colout-0.1-py3.egg/colout/colout.py
 
 
 ## OTHER INSTALLATION METHOD

@@ -1,10 +1,11 @@
-colout(1) -- Color Up Arbitrary Command Ouput
-=============================================
+colout(1) -- Color Up Arbitrary Command Output
+==============================================
 
 ## SYNOPSIS
 
-`colout` [-h] [-g] [-c] [-l] [-a] [-t] [-T] [-s] PATTERN [COLOR(S)] [STYLE(S)]
+`colout` [-h] [-r]
 
+`colout` [-g] [-c] [-l] [-a] [-t] [-T] [-P] [-s] PATTERN [COLOR(S) [STYLE(S)]]
 
 ## DESCRIPTION
 
@@ -14,9 +15,9 @@ matching a given regular expression *PATTERN* in given <COLOR> and *STYLE*.
 If groups are specified in the regular expression pattern, only them are taken
 into account, else the whole matching pattern is colored.
 
-You can specify severall colors or styles when using groups by separating them
+You can specify several colors or styles when using groups by separating them
 with commas. If you indicate more colors than groups, the last ones will be ignored.
-If you ask for less colors, the last one will be duplicated across remaining
+If you ask for fewer colors, the last one will be duplicated across remaining
 groups.
 
 Available colors are: blue, black, yellow, cyan, green, magenta, white, red,
@@ -27,14 +28,16 @@ Available styles are: normal, bold, faint, italic, underline, blink,
 rapid_blink, reverse, conceal or random (some styles may have no effect, depending
 on your terminal).
 
+`rainbow` will cycle over a 8 colors rainbow at each matching pattern.
+`Rainbow` will do the same over 24 colors (this requires a terminal that supports
+the 256 color escape sequences).
+
 `Random` will color each matching pattern with a random color among the 255
 available in the ANSI table. `random` will do the same in 8 colors mode.
 
-`rainbow` will cycle over a 8 colors rainbow at each matching pattern.
-
-`scale` will parse the matching text as a decimal number and apply the rainbow
-colormap according to its position on the scale defined by the `-l` option (see
-below, [0-100] by default).
+`scale` (8 colors) and `Scale` (36 colors) will parse the matching text as
+a decimal number and apply the rainbow colormap according to its position
+on the scale defined by the `-l` option (see below, "0,100" by default).
 
 If the python-pygments library is installed, you can use the name of a
 syntax-coloring "lexer" as a color (for example: "Cpp", "ruby", "xml+django", etc.).
@@ -43,11 +46,11 @@ If GIMP palettes files (*.gpl) are available, you can also use their names as a
 colormap (see the `-P` switch below).
 
 Note that the RGB colors (either the hex triplets or the palettes's colors) will
-be converted to their nearest ANSI 256-colors mode equivalents.
+be converted to their nearest ANSI 256 color mode equivalents.
 
 When not specified, a *COLOR* defaults to _red_ and a *STYLE* defaults to _bold_.
 
-`colout` comes with some predefined themes to rapidely color well-known outputs
+`colout` comes with some predefined themes to rapidly color well-known outputs
 (see the `-t` switch below).
 
 If the python-pygments library is available, `colout` can be used as an interface
@@ -63,14 +66,15 @@ use the `-r` switch (see below).
 
     sudo python3 setup.py install
 
-and then soft link `/usr/local/bin/colout` to your colout.py under your installaion directory, which usually like
+and then soft link `/usr/local/bin/colout` to your colout.py under your installation
+directory, which is usually something like
 
     /usr/local/lib/python3/dist-packages/colout-0.1-py3.egg/colout/colout.py
 
 
 ## OTHER INSTALLATION METHOD
 
-Pypi(the Python Package Index)
+Pypi (the Python Package Index)
 
     sudo pip install colout
 
@@ -84,46 +88,14 @@ Ubuntu 13.04's ppa
     sudo apt-get update
     sudo apt-get/aptitude install colout
 
-Gentoo overlay
+Gentoo
 
-    1. Install layman
-    
-    echo "app-portage/layman git" >> $EPREFIX/etc/portage/package.Use
-    sudo emerge layman
-    
-    2. Edit `$EPREFIX/etc/layman/layman.cfg`. Add a line after
-    
-    overlays   : http://www.gentoo.org/proj/en/overlays/repositories.xml
-    
-    so that it becomes
-    
-    overlays   : http://www.gentoo.org/proj/en/overlays/repositories.xml
-                 file://$EPREFIX/var/lib/layman/my-list.xml
-
-    3. Edit `$EPREFIX/var/lib/layman/my-list.xml`.  The content of this file should be:
-    
-    <?xml version="1.0" ?>
-    <repositories version="1.0">
-    <repo priority="50" quality="experimental" status="unofficial">
-        <name>dongwm-overlay</name>
-        <description>dongweiming's gentoo overlay</description>
-        <homepage>https://github.com/dongweiming/dongwm-overlay.git</homepage>
-        <owner>
-            <email>ciici1234@hotmail.com</email>
-        </owner>
-        <source type="git">git://github.com/dongweiming/dongwm-overlay.git</source>
-    </repo>
-    </repositories>
-
-    4. Add this overlay and installation
-    
-    layman -a dongwm-overlay && sudo emerge colout
-
+    sudo emerge colout
 
 ## OPTIONS
 
 * `-h`, `--help`:
-  Show an help message and exit
+  Show a help message and exit
 
 * `-g`, `--groups`:
   For color maps (like "rainbow"), iterate over matching groups in the pattern instead of over patterns.
@@ -132,7 +104,7 @@ Gentoo overlay
   Use the given list of comma-separated colors as a colormap (cycle the colors at each match).
 
 * `-a`, `--all`
-  Color the whole input at once instead of line per line (really useful
+  Color the whole input at once instead of line by line (really useful
 for coloring a source code file with strings on multiple lines).
 
 * `-l min,max`, `--scale min,max`:
@@ -156,9 +128,9 @@ for coloring a source code file with strings on multiple lines).
   Print the names of all available colors, styles, themes and palettes.
 
 * `-s`, `--source`:
-  Interpret PATTERN as a source code readable by the Pygments library. If the first letter of PATTERN
-  is upper case, use the 256 colors mode, if it is lower case, use the 8 colors mode.
-  In 256 colors, interpret COLOR as a Pygments style (e.g. "default").
+  Interpret PATTERN as source code readable by the Pygments library. If the first letter of PATTERN
+  is upper case, use the 256 color mode, if it is lower case, use the 8 colors mode.
+  In 256 color mode, interpret COLOR as a Pygments style (e.g. "default").
 
 * `--debug`:
   Debug mode: print what's going on internally, if you want to check what features are available.
@@ -169,23 +141,28 @@ for coloring a source code file with strings on multiple lines).
 A regular expression (or _regex_) is a pattern that describes a set of strings
 that matches it.
 
-`colout` understands regex as specifed in the _re_ python module. Given that
+`colout` understands regex as specified in the _re_ python module. Given that
 `colout` is generally called by the command line, you may have to escape
 special characters that would be recognize by your shell.
 
 
 ## DEPENDENCIES
 
-Recommended packages :
+Recommended packages:
 
 * `argparse` for a usable arguments parsing
 * `pygments` for the source code syntax coloring
 * `babel` for a locale-aware number parsing
 
 
+## LIMITATIONS
+
+Don't use nested groups or colout will duplicate the corresponding input text with each matching colors.
+
+
 ## EXAMPLES
 
-* Color in bold red every occurence of the word _color_ in colout sources:
+* Color in bold red every occurrence of the word _color_ in colout sources:
   `cat colout.py | colout color red bold`
 
 * Color in bold violet home directories in _/etc/passwd_:
@@ -221,16 +198,16 @@ Recommended packages :
   `make 2>&³ | colout -t cmake | colout -t g++`
 
 * Color each word in the head of auth.log with a rainbow color map, starting a new colormap at each new line (the
-  begining of the command is just bash magic to repeat the string "(\\w+)\\W+":
+  beginning of the command is just bash magic to repeat the string "(\\w+)\\W+":
   `L=$(seq 10) ; P=${L//??/(\\w+)\\W+} ; head /var/log/auth.log | colout -g "^${P}(.*)$" rainbow`
 
 * Color each line of a file with a different color among a 256 color gradient from cyan to green:
   `head /var/log/auth.log | colout -c "^.*$" 39,38,37,36,35,34`
 
-* Color a source code in 8 colors mode, without seeing comments:
+* Color source code in 8 colors mode, without seeing comments:
   `cat colout.py | grep -v "#" | colout -s python`
 
-* Color a source code in 256 colors mode:
+* Color source code in 256 color mode:
   `cat colout.py | colout -s Python monokai`
 
 * Color a JSON stream:

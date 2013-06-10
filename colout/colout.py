@@ -267,6 +267,7 @@ def colorin(text, color="red", style="normal"):
     assert( type(color) is str )
 
     global colormap_idx
+    global debug
 
     # Special characters.
     start = "\033["
@@ -284,7 +285,10 @@ def colorin(text, color="red", style="normal"):
 
     if color == "none":
         # if no color, style cannot be applied
-        return text
+        if not debug:
+            return text
+        else:
+            return "<none>"+text+"</none>"
 
     elif color == "random":
         mode = 8
@@ -396,13 +400,19 @@ def colorin(text, color="red", style="normal"):
             formatter = TerminalFormatter(bg=style)
             # We should return all but the last character,
             # because Pygments adds a newline char.
-        return highlight(text, lexer, formatter)[:-1]
+        if not debug:
+            return highlight(text, lexer, formatter)[:-1]
+        else:
+            return "<"+color+">"+ highlight(text, lexer, formatter)[:-1] + "</"+color+">"
 
     # unrecognized
     else:
         raise UnknownColor(color)
 
-    return start + style_code + endmarks[mode] + color_code + "m" + text + stop
+    if not debug:
+        return start + style_code + endmarks[mode] + color_code + "m" + text + stop
+    else:
+        return start + style_code + endmarks[mode] + color_code + "m<" + color + ">" + text + "</" + color + ">" + stop
 
 
 def colorout(text, match, prev_end, color="red", style="normal", group=0):
@@ -442,7 +452,11 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False):
     '\x1b[1;34mF\x1b[0m\x1b[3;34maites\x1b[0m \x1b[1;34mC\x1b[0m\x1b[3;34mhier\x1b[0m la Vache'
     """
     global colormap_idx
-    regex = re.compile(pattern)  # , re.IGNORECASE)
+
+    if not debug:
+        regex = re.compile(pattern)
+    else:
+        regex = re.compile(pattern, re.DEBUG)
 
     # Prepare the colored text.
     colored_text = ""

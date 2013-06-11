@@ -304,8 +304,10 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False):
             # but that match.start(0) refers to the whole match, the groups being indexed in [1,n].
             # Thus, we need to range in [1,n+1[.
             for group in range(1, nb_groups+1):
-                partial, end = colorout(text, match, end, group_colors[group-1], group_styles[group-1], group)
-                colored_text += partial
+                # If a group didn't match, there's nothing to color
+                if match.group(group) is not None:
+                    partial, end = colorout(text, match, end, group_colors[group-1], group_styles[group-1], group)
+                    colored_text += partial
 
     # Append the remaining part of the text, if any.
     colored_text += text[end:]

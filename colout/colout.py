@@ -494,6 +494,9 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False):
 
     return colored_text
 
+def no_op(text):
+    return text
+
 
 ###########
 # Helpers #
@@ -678,11 +681,16 @@ def __args_parse__(argv, usage=""):
                 if it is lower case, use the 8 colors mode. \
                 Interpret COLOR as a Pygments style.")
 
+    parser.add_argument("--autocolor", action="store_true",
+            help="Replicates the functionality of --color=auto in ls or grep. \
+                If set, colout will only color text if it's connected to a terminal.")
+
     args = parser.parse_args()
 
     return args.pattern[0], args.color, args.style, args.groups, \
            args.colormap, args.theme, args.source, args.all, args.scale, args.debug, args.resources, args.palettes_dir, \
-           args.themes_dir
+           args.themes_dir, \
+           args.autocolor
 
 
 def write_all( as_all, stream_in, stream_out, function, *args ):
@@ -717,7 +725,7 @@ if __name__ == "__main__":
     # if argparse is available
     else:
         pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale, \
-        debug, resources, palettes_dirs, themes_dirs \
+        debug, resources, palettes_dirs, themes_dirs, autocolor \
             = __args_parse__(sys.argv, usage)
 
     if debug:
@@ -726,6 +734,11 @@ if __name__ == "__main__":
         lvl = logging.ERROR
 
     logging.basicConfig(format='[colout] %(levelname)s: %(message)s', level=lvl)
+
+    if autocolor and not sys.stdout.isatty():
+        pass_through = True
+    else:
+        pass_through = False
 
 
     ##################
@@ -802,8 +815,13 @@ if __name__ == "__main__":
             color = "colormap"  # use the keyword to switch to colormap instead of list of colors
             logging.debug("used-defined colormap: %s" % ",".join(colormap) )
 
+        # if noop
+        if pass_through:
+            logging.debug( "passing input through without modification" )
+            write_all( as_all, sys.stdin, sys.stdout, no_op )
+
         # if theme
-        if as_theme:
+        elif as_theme:
             logging.debug( "asked for theme: %s" % pattern )
             assert(pattern in themes.keys())
             write_all( as_all, sys.stdin, sys.stdout, colortheme, themes[pattern].theme() )

@@ -35,5 +35,5 @@ def theme():
         [ "make\[[0-9]+\].*", "yellow"],
         [ "(make: \*\*\* \[.+\] )(.* [0-9]+)", "red", "normal,bold"],
         # progress percentage
-        [ "^\[\s*([0-9]+)%\]","scale" ]
+        [ "^\[\s*([0-9]+)%\]","Scale" ]
     ]

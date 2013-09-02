@@ -13,6 +13,12 @@ import glob
 import math
 import importlib
 import logging
+import signal
+
+# set the SIGPIPE handler to kill the program instead of
+# ending in a write error when a broken pipe occurs
+signal.signal( signal.SIGPIPE, signal.SIG_DFL )
+
 
 ###############################################################################
 # Ressource parsing helpers
@@ -524,8 +530,16 @@ def write(colored, stream = sys.stdout):
     """
     Write "colored" on sys.stdout, then flush.
     """
-    stream.write(colored)
-    stream.flush()
+    try:
+        stream.write(colored)
+        stream.flush()
+
+    # Silently handle broken pipes
+    except IOError:
+        try:
+            stream.close()
+        except IOError:
+            pass
 
 
 def map_write( stream_in, stream_out, function, *args ):

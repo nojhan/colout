@@ -126,6 +126,8 @@ for coloring a source code file with strings on multiple lines).
 
 * `-r`, `--resources`:
   Print the names of all available colors, styles, themes and palettes.
+  A bug currently made it mandatory to use an additional dummy argument to this option
+  to make it work correctly, use `-r x`.
 
 * `-s`, `--source`:
   Interpret PATTERN as source code readable by the Pygments library. If the first letter of PATTERN

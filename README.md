@@ -164,14 +164,13 @@ Don't use nested groups or colout will duplicate the corresponding input text wi
 
 ## EXAMPLES
 
+### Simple
+
 * Color in bold red every occurrence of the word _color_ in colout sources:
   `cat colout.py | colout color red bold`
 
 * Color in bold violet home directories in _/etc/passwd_:
   `colout '/home/[a-z]+' 135 < /etc/passwd`
-
-* Use a different color for each line of the auth log
-  `grep user /var/log/auth.log | colout "^.*$" rainbow`
 
 * Color in yellow user/groups id, in bold green name and in bold red home directories in _/etc/passwd_:
   `colout ':x:([0-9]+:[0-9]+):([^:]+).*(/home/[a-z]+)' yellow,green,red normal,bold < /etc/passwd`
@@ -182,17 +181,26 @@ Don't use nested groups or colout will duplicate the corresponding input text wi
 * Color in green read permission, in bold red write and execution ones:
   `ls -l | colout '(r)(w*)(x*)' green,red normal,bold`
 
-* Color permissions with a predefined template:
-  `ls -l | colout -t perm`
-
 * Color in green comments in colout sources:
   `colout '.*(#.*)$' green normal < colout.py`
 
-* Color in light green comments in non-empty colout sources, with the sharp in bold green:
-  `grep -v '^\s*$' colout.py | colout '.*(#)(.*)$' green,119 bold,normal`
-
 * Color in bold green every numbers and in bold red the words _error_ in make output:
   `make 2>&1 | colout '[0-9]+' green normal | colout error`
+
+
+### Somewhat useful
+
+* Use a different color for each line of the auth log
+  `grep user /var/log/auth.log | colout "^.*$" rainbow`
+
+* Color each line of a file with a different color among a 256 color gradient from cyan to green:
+  `head /var/log/auth.log | colout -c "^.*$" 39,38,37,36,35,34`
+
+* Color permissions with a predefined template:
+  `ls -l | colout -t perm`
+
+* Color in light green comments in non-empty colout sources, with the sharp in bold green:
+  `grep -v '^\s*$' colout.py | colout '.*(#)(.*)$' green,119 bold,normal`
 
 * Color a make output, line numbers in yellow, errors in bold red, warning in magenta, pragma in green and C++ file base names in cyan:
   `make 2>&1 | colout ':([0-9]+):[0-9]*' yellow normal | colout error | colout warning magenta | colout pragma green normal | colout '/(\w+)*\.(h|cpp)' cyan normal`
@@ -202,9 +210,6 @@ Don't use nested groups or colout will duplicate the corresponding input text wi
 * Color each word in the head of auth.log with a rainbow color map, starting a new colormap at each new line (the
   beginning of the command is just bash magic to repeat the string "(\\w+)\\W+":
   `L=$(seq 10) ; P=${L//??/(\\w+)\\W+} ; head /var/log/auth.log | colout -g "^${P}(.*)$" rainbow`
-
-* Color each line of a file with a different color among a 256 color gradient from cyan to green:
-  `head /var/log/auth.log | colout -c "^.*$" 39,38,37,36,35,34`
 
 * Color source code in 8 colors mode, without seeing comments:
   `cat colout.py | grep -v "#" | colout -s python`
@@ -217,4 +222,19 @@ Don't use nested groups or colout will duplicate the corresponding input text wi
 
 * Color a source code substring:
   `echo "There is an error in 'static void Functor::operator()( EOT& indiv ) { return indiv; }' you should fix it" | colout "'(.*)'" Cpp monokai`
+
+
+### Bash alias
+
+The following bash function color the output of any command with the
+cmake and g77 themes:
+
+    function cm()
+    {
+        set -o pipefail
+        $@ 2>&1  | colout -t cmake | colout -t g++
+    }
+
+You then can use the `cm` alias as a prefix to your build command,
+for example: `cm make test`
 

@@ -103,10 +103,6 @@ Gentoo
 * `-c`, `--colormap`:
   Use the given list of comma-separated colors as a colormap (cycle the colors at each match).
 
-* `-a`, `--all`
-  Color the whole input at once instead of line by line (really useful
-for coloring a source code file with strings on multiple lines).
-
 * `-l min,max`, `--scale min,max`:
   When using the 'scale' colormap, parse matches as decimal numbers (taking your locale into account)
   and apply the rainbow colormap linearly between the given min,max (0,100, by default).

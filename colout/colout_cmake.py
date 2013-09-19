@@ -23,13 +23,13 @@ def theme():
         [ "^(Scanning dependencies of target)(.*)$",
           performing, "normal,bold" ],
         # Link
-        [ "^(Linking .* (library|executable) )(.*/)+(.+(\.[aso]+)*)$",
+        [ "^(Linking .* )(library|executable) (.*/)+(.+(\.[aso]+)*)$",
           performing, "normal,normal,bold" ],
         # [percent] Built
         [ "^\[\s*[0-9]+%\]\s(Built target)(\s.*)$",
           performed, "normal,bold" ],
         # [percent] Building
-        [ "^\[\s*[0-9]+%\]\s(Building \w* object)(\s.*/)(\w+.c.*)(.o)$",
+        [ "^\[\s*[0-9]+%\]\s(Building \w* object)(\s+.*/)([-\w]+.c.*)(.o)$",
             performing, "normal,normal,bold,normal"],
         # make errors
         [ "make\[[0-9]+\].*", "yellow"],

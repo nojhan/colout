@@ -26,16 +26,17 @@ def theme():
     enc = locale.getpreferredencoding()
     if "UTF" in enc:
         # gcc will use unicode quotes
-        qo = "‘"
-        qc = "’"
+        qo = "[‘`]"
+        qc = "[’']"
     else:
         # rather than ascii ones
-        qo = "'"
+        qo = "['`]"
         qc = "'"
 
     return [
         [ _("error: "), "red", "bold" ],
         [ _("warning: "), "magenta", "bold" ],
+        [ _("undefined reference to "), "red", "bold" ],
         # [-Wflag]
         [ "\[-W.*\]", "magenta"],
 

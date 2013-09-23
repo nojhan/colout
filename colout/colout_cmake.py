@@ -23,7 +23,7 @@ def theme():
         [ "^(Scanning dependencies of target)(.*)$",
           performing, "normal,bold" ],
         # Link
-        [ "^(Linking .* )(library|executable) (.*/)+(.+(\.[aso]+)*)$",
+        [ "^(Linking .* )(library|executable) (.*/)*(.+(\.[aso]+)*)$",
           performing, "normal,normal,bold" ],
         # [percent] Built
         [ "^\[\s*[0-9]+%\]\s(Built target)(\s.*)$",

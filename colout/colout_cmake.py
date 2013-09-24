@@ -5,6 +5,8 @@ def theme():
     performing="cyan"
     #  actions performed in green
     performed="green"
+    #  actions taking an unknown time
+    untimed="blue"
 
     return [
         # Configure...
@@ -24,16 +26,19 @@ def theme():
           performing, "normal,bold" ],
         # Link
         [ "^(Linking .* )(library|executable) (.*/)*(.+(\.[aso]+)*)$",
-          performing, "normal,normal,bold" ],
+          untimed, "normal,normal,bold" ],
         # [percent] Built
         [ "^\[\s*[0-9]+%\]\s(Built target)(\s.*)$",
           performed, "normal,bold" ],
         # [percent] Building
         [ "^\[\s*[0-9]+%\]\s(Building \w* object)(\s+.*/)([-\w]+.c.*)(.o)$",
             performing, "normal,normal,bold,normal"],
+        # [percent] Generating
+        [ "^\[\s*[0-9]+%\]\s(Generating)(\s+.*)$",
+            performing, "normal,bold"],
         # make errors
         [ "make\[[0-9]+\].*", "yellow"],
         [ "(make: \*\*\* \[.+\] )(.* [0-9]+)", "red", "normal,bold"],
         # progress percentage
-        [ "^\[\s*([0-9]+)%\]","Scale" ]
+        [ "^(\[\s*[0-9]+%\])","Scale" ]
     ]

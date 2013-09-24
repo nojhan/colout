@@ -35,9 +35,14 @@ the 256 color escape sequences).
 `Random` will color each matching pattern with a random color among the 255
 available in the ANSI table. `random` will do the same in 8 colors mode.
 
-`scale` (8 colors) and `Scale` (36 colors) will parse the matching text as
-a decimal number and apply the rainbow colormap according to its position
-on the scale defined by the `-l` option (see below, "0,100" by default).
+`scale` (8 colors) and `Scale` (36 colors) will parse the numbers characters in
+the matching text as a decimal number and apply the rainbow colormap according
+to its position on the scale defined by the `-l` option (see below, "0,100" by
+default).
+
+Before interpreting the matched string as a number, colout will remove any
+character not supposed to be used to write down numbers. This permits to apply
+this special color on a large group, while interpreting only its numerical part.
 
 If the python-pygments library is installed, you can use the name of a
 syntax-coloring "lexer" as a color (for example: "Cpp", "ruby", "xml+django", etc.).
@@ -218,6 +223,10 @@ Don't use nested groups or colout will duplicate the corresponding input text wi
 
 * Color a source code substring:
   `echo "There is an error in 'static void Functor::operator()( EOT& indiv ) { return indiv; }' you should fix it" | colout "'(.*)'" Cpp monokai`
+
+* Color the percent of progress part of a CMake's makefile output, with a color
+  related to the value of the progress (from 0%=blue to 100%=red):
+  `cmake .. && make | colout "^(\[\s*[0-9]+%\])" Scale`
 
 
 ### Bash alias

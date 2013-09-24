@@ -14,6 +14,7 @@ import math
 import importlib
 import logging
 import signal
+import string
 
 # set the SIGPIPE handler to kill the program instead of
 # ending in a write error when a broken pipe occurs
@@ -326,11 +327,21 @@ def colorin(text, color="red", style="normal"):
             colormap_idx = 0
 
     elif color.lower() == "scale": # "scale" or "Scale"
+
+        # filter out everything that does not seem to be necessary to interpret the string as a number
+        # this permits to transform "[ 95%]" to "95" before number conversion,
+        # and thus allows to color a group larger than the matched number
+        chars_in_numbers = "-+.,e"
+        allowed = string.digits + chars_in_numbers
+        nb = "".join([i for i in filter(allowed.__contains__, text)])
+
+        # interpret as decimal
         try:
+            # babel is a specialized module
             import babel.numbers as bn
-            f = float(bn.parse_decimal(text))
+            f = float(bn.parse_decimal(nb))
         except ImportError:
-            f = float(text)
+            f = float(nb)
 
         # if out of scale, do not color
         if f < scale[0] or f > scale[1]:

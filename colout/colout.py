@@ -290,6 +290,7 @@ def colorin(text, color="red", style="normal"):
         if style in styles:
             style_code = str(styles[style])
 
+    color = color.strip()
     if color == "none":
         # if no color, style cannot be applied
         if not debug:

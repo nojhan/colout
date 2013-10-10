@@ -35,6 +35,7 @@ def theme():
 
     return [
         [ _("error: "), "red", "bold" ],
+        [ _("fatal error: "), "red", "bold" ],
         [ _("warning: "), "magenta", "bold" ],
         [ _("undefined reference to "), "red", "bold" ],
         # [-Wflag]

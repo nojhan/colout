@@ -206,7 +206,7 @@ Don't use nested groups or colout will duplicate the corresponding input text wi
 * Color a make output, line numbers in yellow, errors in bold red, warning in magenta, pragma in green and C++ file base names in cyan:
   `make 2>&1 | colout ':([0-9]+):[0-9]*' yellow normal | colout error | colout warning magenta | colout pragma green normal | colout '/(\w+)*\.(h|cpp)' cyan normal`
   Or using themes:
-  `make 2>&³ | colout -t cmake | colout -t g++`
+  `make 2>&1 | colout -t cmake | colout -t g++`
 
 * Color each word in the head of auth.log with a rainbow color map, starting a new colormap at each new line (the
   beginning of the command is just bash magic to repeat the string "(\\w+)\\W+":

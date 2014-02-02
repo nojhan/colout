@@ -567,6 +567,8 @@ def map_write( stream_in, stream_out, function, *args ):
     while True:
         try:
             item = stream_in.readline()
+        except UnicodeDecodeError:
+            continue
         except KeyboardInterrupt:
             break
         if not item:

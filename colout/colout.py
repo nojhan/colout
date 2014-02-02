@@ -710,7 +710,7 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("-c", "--colormap", action="store_true",
             help="Use the given colors as a colormap (cycle the colors at each match)")
 
-    parser.add_argument("-l", "--scale",
+    parser.add_argument("-l", "--scale", metavar="SCALE",
             help="When using the 'scale' colormap, parse matches as decimal numbers (taking your locale into account) \
                 and apply the rainbow colormap linearly between the given SCALE=min,max")
 
@@ -728,8 +728,14 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("-P", "--palettes-dir", metavar="DIR", action="append",
             help="Search for additional palettes (*.gpl files) in this directory")
 
+    # This normally should be an option with an argument, but this would end in an error,
+    # as no regexp is supposed to be passed after calling this option,
+    # we use it as the argument to this option.
+    # The only drawback is that the help message lacks a metavar...
     parser.add_argument("-r", "--resources", action="store_true",
-            help="Print the names of all available colors, styles, themes and palettes.")
+            help="Print the names of available resources. Use a comma-separated list of resources names \
+            (styles, colors, special, themes, palettes, colormaps or lexers), \
+            use 'all' to print everything.")
 
     parser.add_argument("--debug", action="store_true",
             help="Debug mode: print what's going on internally, useful if you want to check what features are available.")
@@ -827,25 +833,35 @@ if __name__ == "__main__":
         sys.exit( error_codes["DuplicatedPalette"] )
 
     if resources:
-        print("Available resources:")
-        print("STYLES: %s" % ", ".join(styles) )
-        print("COLORS: %s" % ", ".join(colors) )
-        print("SPECIAL: %s" % ", ".join(["random", "Random", "scale", "Scale", "hash", "Hash", "colormap"]) )
+        asked=[r.lower() for r in pattern.split(",")]
+        # print("Available resources:")
+        for res in asked:
+            if "style" in res or "all" in res:
+                print("STYLES: %s" % ", ".join(styles) )
 
-        if len(themes) > 0:
-            print("THEMES: %s" % ", ".join(themes.keys()) )
-        else:
-            print("NO THEME")
+            if "color" in res or "all" in res:
+                print("COLORS: %s" % ", ".join(colors) )
 
-        if len(colormaps) > 0:
-            print("COLORMAPS: %s" % ", ".join(colormaps) )
-        else:
-            print("NO COLORMAPS")
+            if "special" in res or "all" in res:
+                print("SPECIAL: %s" % ", ".join(["random", "Random", "scale", "Scale", "hash", "Hash", "colormap"]) )
 
-        if len(lexers) > 0:
-            print("LEXERS: %s" % ", ".join(lexers) )
-        else:
-            print("NO LEXER")
+            if "theme" in res or "all" in res:
+                if len(themes) > 0:
+                    print("THEMES: %s" % ", ".join(themes.keys()) )
+                else:
+                    print("NO THEME")
+
+            if "colormap" in res or "all" in res:
+                if len(colormaps) > 0:
+                    print("COLORMAPS: %s" % ", ".join(colormaps) )
+                else:
+                    print("NO COLORMAPS")
+
+            if "lexer" in res or "all" in res:
+                if len(lexers) > 0:
+                    print("LEXERS: %s" % ", ".join(lexers) )
+                else:
+                    print("NO LEXER")
 
         sys.exit(0) # not an error, we asked for help
 

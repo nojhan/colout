@@ -3,7 +3,7 @@ colout(1) -- Color Up Arbitrary Command Output
 
 ## SYNOPSIS
 
-`colout` [-h] [-r]
+`colout` [-h] [-r RESOURCE]
 
 `colout` [-g] [-c] [-l] [-a] [-t] [-T] [-P] [-s] PATTERN [COLOR(S) [STYLE(S)]]
 
@@ -125,10 +125,10 @@ Gentoo
 * `-P DIR`, `--palettes-dir DIR`:
   Search for additional palettes (*.gpl files) in this directory.
 
-* `-r`, `--resources`:
-  Print the names of all available colors, styles, themes and palettes.
-  A bug currently made it mandatory to use an additional dummy argument to this option
-  to make it work correctly, use `-r x`.
+* `-r TYPE(S)`, `--resources TYPE(S)`:
+  Print the names of available resources. Use a comma-separated list of resources names
+  (styles, colors, special, themes, palettes, colormaps or lexers),
+  use 'all' to print everything.
 
 * `-s`, `--source`:
   Interpret PATTERN as source code readable by the Pygments library. If the first letter of PATTERN

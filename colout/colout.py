@@ -15,6 +15,8 @@ import importlib
 import logging
 import signal
 import string
+import hashlib
+import functools
 
 # set the SIGPIPE handler to kill the program instead of
 # ending in a write error when a broken pipe occurs
@@ -360,6 +362,31 @@ def colorin(text, color="red", style="normal"):
         else:
             mode = 256
             cmap = colormaps["Spectrum"]
+            i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
+            color = cmap[i]
+            color_code = str(color)
+
+    # "hash" or "Hash"; useful to randomly but consistently color strings
+    elif color.lower() == "hash":
+        hasher = hashlib.md5()
+        hasher.update(text.encode('utf-8'))
+        hash = hasher.hexdigest()
+
+        f = float(functools.reduce(lambda x, y: x+ord(y), hash, 0) % 101)
+
+        if color[0].islower():
+            mode = 8
+            cmap = colormaps["rainbow"]
+
+            # normalize and scale over the nb of colors in cmap
+            i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
+
+            color = cmap[i]
+            color_code = str(30 + colors[color])
+
+        else:
+            mode = 256
+            cmap = colormaps["Rainbow"]
             i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
             color = cmap[i]
             color_code = str(color)
@@ -803,7 +830,7 @@ if __name__ == "__main__":
         print("Available resources:")
         print("STYLES: %s" % ", ".join(styles) )
         print("COLORS: %s" % ", ".join(colors) )
-        print("SPECIAL: %s" % ", ".join(["random", "Random", "scale", "Scale", "colormap"]) )
+        print("SPECIAL: %s" % ", ".join(["random", "Random", "scale", "Scale", "hash", "Hash", "colormap"]) )
 
         if len(themes) > 0:
             print("THEMES: %s" % ", ".join(themes.keys()) )

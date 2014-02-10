@@ -666,10 +666,17 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("pattern", metavar="REGEX", type=str, nargs=1,
             help="A regular expression")
 
+    pygments_warn=" You can also use a language name to activate syntax coloring (see `-r all` for a list)."
+    try:
+        import pygments
+    except ImportError:
+        pygments_warn=" (WARNING: python3-pygments is not available, \
+                install it if you want to be able to use syntax coloring)"
+
     parser.add_argument("color", metavar="COLOR", type=str, nargs='?',
             default="red",
             help="A number in [0…255], a color name, a colormap name, \
-            a palette or a comma-separated list of those values.")
+            a palette or a comma-separated list of those values."+pygments_warn)
 
     parser.add_argument("style", metavar="STYLE", type=str, nargs='?',
             default="bold",
@@ -682,9 +689,18 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("-c", "--colormap", action="store_true",
             help="Use the given colors as a colormap (cycle the colors at each match)")
 
+
+    babel_warn=" (numbers will be parsed according to your locale)"
+    try:
+        # babel is a specialized module
+        import babel.numbers
+    except ImportError:
+        babel_warn=" (WARNING: python3-babel is not available, install it \
+        if you want to be able to parse numbers according to your locale)"
+
     parser.add_argument("-l", "--scale",
-            help="When using the 'scale' colormap, parse matches as decimal numbers (taking your locale into account) \
-                and apply the rainbow colormap linearly between the given SCALE=min,max")
+            help="When using the 'scale' colormap, parse matches as decimal numbers \
+                and apply the rainbow colormap linearly between the given SCALE=min,max" + babel_warn)
 
     parser.add_argument("-a", "--all", action="store_true",
             help="Color the whole input at once instead of line per line \
@@ -815,9 +831,9 @@ if __name__ == "__main__":
             print("NO COLORMAPS")
 
         if len(lexers) > 0:
-            print("LEXERS: %s" % ", ".join(lexers) )
+            print("SYNTAX COLORING: %s" % ", ".join(lexers) )
         else:
-            print("NO LEXER")
+            print("NO SYNTAX COLORING (check that python3-pygments is installed)")
 
         sys.exit(0) # not an error, we asked for help
 

@@ -44,7 +44,7 @@ Before interpreting the matched string as a number, colout will remove any
 character not supposed to be used to write down numbers. This permits to apply
 this special color on a large group, while interpreting only its numerical part.
 
-If the python-pygments library is installed, you can use the name of a
+If the python3-pygments library is installed, you can use the name of a
 syntax-coloring "lexer" as a color (for example: "Cpp", "ruby", "xml+django", etc.).
 
 If GIMP palettes files (*.gpl) are available, you can also use their names as a
@@ -58,7 +58,7 @@ When not specified, a *COLOR* defaults to _red_ and a *STYLE* defaults to _bold_
 `colout` comes with some predefined themes to rapidly color well-known outputs
 (see the `-t` switch below).
 
-If the python-pygments library is available, `colout` can be used as an interface
+If the python3-pygments library is available, `colout` can be used as an interface
 to it (see also the `-s` switch below).
 
 To have a list of all colors, styles, special colormaps, themes, palettes and lexers,

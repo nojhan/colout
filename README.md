@@ -3,7 +3,7 @@ colout(1) -- Color Up Arbitrary Command Output
 
 ## SYNOPSIS
 
-`colout` [-h] [-r]
+`colout` [-h] [-r RESOURCE]
 
 `colout` [-g] [-c] [-l] [-a] [-t] [-T] [-P] [-s] PATTERN [COLOR(S) [STYLE(S)]]
 
@@ -125,10 +125,10 @@ Gentoo
 * `-P DIR`, `--palettes-dir DIR`:
   Search for additional palettes (*.gpl files) in this directory.
 
-* `-r`, `--resources`:
-  Print the names of all available colors, styles, themes and palettes.
-  A bug currently made it mandatory to use an additional dummy argument to this option
-  to make it work correctly, use `-r x`.
+* `-r TYPE(S)`, `--resources TYPE(S)`:
+  Print the names of available resources. Use a comma-separated list of resources names
+  (styles, colors, special, themes, palettes, colormaps or lexers),
+  use 'all' to print everything.
 
 * `-s`, `--source`:
   Interpret PATTERN as source code readable by the Pygments library. If the first letter of PATTERN
@@ -206,7 +206,7 @@ Don't use nested groups or colout will duplicate the corresponding input text wi
 * Color a make output, line numbers in yellow, errors in bold red, warning in magenta, pragma in green and C++ file base names in cyan:
   `make 2>&1 | colout ':([0-9]+):[0-9]*' yellow normal | colout error | colout warning magenta | colout pragma green normal | colout '/(\w+)*\.(h|cpp)' cyan normal`
   Or using themes:
-  `make 2>&³ | colout -t cmake | colout -t g++`
+  `make 2>&1 | colout -t cmake | colout -t g++`
 
 * Color each word in the head of auth.log with a rainbow color map, starting a new colormap at each new line (the
   beginning of the command is just bash magic to repeat the string "(\\w+)\\W+":

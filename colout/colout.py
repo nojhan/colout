@@ -15,6 +15,8 @@ import importlib
 import logging
 import signal
 import string
+import hashlib
+import functools
 
 # set the SIGPIPE handler to kill the program instead of
 # ending in a write error when a broken pipe occurs
@@ -365,6 +367,31 @@ def colorin(text, color="red", style="normal"):
             color = cmap[i]
             color_code = str(color)
 
+    # "hash" or "Hash"; useful to randomly but consistently color strings
+    elif color.lower() == "hash":
+        hasher = hashlib.md5()
+        hasher.update(text.encode('utf-8'))
+        hash = hasher.hexdigest()
+
+        f = float(functools.reduce(lambda x, y: x+ord(y), hash, 0) % 101)
+
+        if color[0].islower():
+            mode = 8
+            cmap = colormaps["rainbow"]
+
+            # normalize and scale over the nb of colors in cmap
+            i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
+
+            color = cmap[i]
+            color_code = str(30 + colors[color])
+
+        else:
+            mode = 256
+            cmap = colormaps["Rainbow"]
+            i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
+            color = cmap[i]
+            color_code = str(color)
+
     # Really useful only when using colout as a library
     # thus you can change the "colormap" variable to your favorite one before calling colorin
     elif color == "colormap":
@@ -568,6 +595,8 @@ def map_write( stream_in, stream_out, function, *args ):
     while True:
         try:
             item = stream_in.readline()
+        except UnicodeDecodeError:
+            continue
         except KeyboardInterrupt:
             break
         if not item:
@@ -689,7 +718,6 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("-c", "--colormap", action="store_true",
             help="Use the given colors as a colormap (cycle the colors at each match)")
 
-
     babel_warn=" (numbers will be parsed according to your locale)"
     try:
         # babel is a specialized module
@@ -716,8 +744,14 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("-P", "--palettes-dir", metavar="DIR", action="append",
             help="Search for additional palettes (*.gpl files) in this directory")
 
+    # This normally should be an option with an argument, but this would end in an error,
+    # as no regexp is supposed to be passed after calling this option,
+    # we use it as the argument to this option.
+    # The only drawback is that the help message lacks a metavar...
     parser.add_argument("-r", "--resources", action="store_true",
-            help="Print the names of all available colors, styles, themes and palettes.")
+            help="Print the names of available resources. Use a comma-separated list of resources names \
+            (styles, colors, special, themes, palettes, colormaps or lexers), \
+            use 'all' to print everything.")
 
     parser.add_argument("--debug", action="store_true",
             help="Debug mode: print what's going on internally, useful if you want to check what features are available.")
@@ -815,25 +849,35 @@ if __name__ == "__main__":
         sys.exit( error_codes["DuplicatedPalette"] )
 
     if resources:
-        print("Available resources:")
-        print("STYLES: %s" % ", ".join(styles) )
-        print("COLORS: %s" % ", ".join(colors) )
-        print("SPECIAL: %s" % ", ".join(["random", "Random", "scale", "Scale", "colormap"]) )
+        asked=[r.lower() for r in pattern.split(",")]
+        # print("Available resources:")
+        for res in asked:
+            if "style" in res or "all" in res:
+                print("STYLES: %s" % ", ".join(styles) )
 
-        if len(themes) > 0:
-            print("THEMES: %s" % ", ".join(themes.keys()) )
-        else:
-            print("NO THEME")
+            if "color" in res or "all" in res:
+                print("COLORS: %s" % ", ".join(colors) )
 
-        if len(colormaps) > 0:
-            print("COLORMAPS: %s" % ", ".join(colormaps) )
-        else:
-            print("NO COLORMAPS")
+            if "special" in res or "all" in res:
+                print("SPECIAL: %s" % ", ".join(["random", "Random", "scale", "Scale", "hash", "Hash", "colormap"]) )
 
-        if len(lexers) > 0:
-            print("SYNTAX COLORING: %s" % ", ".join(lexers) )
-        else:
-            print("NO SYNTAX COLORING (check that python3-pygments is installed)")
+            if "theme" in res or "all" in res:
+                if len(themes) > 0:
+                    print("THEMES: %s" % ", ".join(themes.keys()) )
+                else:
+                    print("NO THEME")
+
+            if "colormap" in res or "all" in res:
+                if len(colormaps) > 0:
+                    print("COLORMAPS: %s" % ", ".join(colormaps) )
+                else:
+                    print("NO COLORMAPS")
+
+            if "lexer" in res or "all" in res:
+                if len(lexers) > 0:
+                    print("SYNTAX COLORING: %s" % ", ".join(lexers) )
+                else:
+                    print("NO SYNTAX COLORING (check that python3-pygments is installed)")
 
         sys.exit(0) # not an error, we asked for help
 

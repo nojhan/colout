@@ -34,6 +34,19 @@ def theme():
         qc = "'"
 
     return [
+        # Command line
+        [ "[/\s]([cg]\+\+-*[0-9]*\.*[0-9]*)", "white", "bold" ],
+        [ "\s(\-D)(\s*[^\s]+\s)", "none,green", "normal,bold" ],
+        [ "\s-g\s", "green", "normal" ],
+        [ "\s-O[0-4]*\s", "green", "normal" ],
+        [ "\s-[Wf][^\s]*", "magenta", "normal" ],
+        [ "\s(-I)(/*[^\s]+/)([^/\s]+)", "none,blue", "normal,normal,bold" ],
+        [ "\s(-L)(/*[^\s]+/)([^/\s]+)", "none,cyan", "normal,normal,bold" ],
+        [ "\s(-l)([^/\s]+)", "none,cyan", "normal,bold" ],
+        [ "\s-[oc]", "red", "bold" ],
+        [ "\s(-+std)=*([^s]+)", "red", "normal,bold" ],
+
+        # Important messages
         [ _("error: "), "red", "bold" ],
         [ _("fatal error: "), "red", "bold" ],
         [ _("warning: "), "magenta", "bold" ],

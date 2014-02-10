@@ -695,7 +695,7 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("pattern", metavar="REGEX", type=str, nargs=1,
             help="A regular expression")
 
-    pygments_warn=" You can also use a language name to activate syntax coloring (see `-r all` for a list)."
+    pygments_warn=" You can use a language name to activate syntax coloring (see `-r all` for a list)."
     try:
         import pygments
     except ImportError:
@@ -705,14 +705,14 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("color", metavar="COLOR", type=str, nargs='?',
             default="red",
             help="A number in [0…255], a color name, a colormap name, \
-            a palette or a comma-separated list of those values."+pygments_warn)
+            a palette or a comma-separated list of those values." + pygments_warn)
 
     parser.add_argument("style", metavar="STYLE", type=str, nargs='?',
             default="bold",
             help="One of the available styles or a comma-separated list of styles.")
 
     parser.add_argument("-g", "--groups", action="store_true",
-            help="For color maps (random, rainbow), iterate over matching groups \
+            help="For color maps (random, rainbow, etc.), iterate over matching groups \
                 in the pattern instead of over patterns")
 
     parser.add_argument("-c", "--colormap", action="store_true",
@@ -739,10 +739,10 @@ def __args_parse__(argv, usage=""):
             help="Interpret REGEX as a theme.")
 
     parser.add_argument("-T", "--themes-dir", metavar="DIR", action="append",
-            help="Search for additional themes (colout_*.py files) in this directory")
+            help="Search for additional themes (colout_*.py files) in the given directory")
 
     parser.add_argument("-P", "--palettes-dir", metavar="DIR", action="append",
-            help="Search for additional palettes (*.gpl files) in this directory")
+            help="Search for additional palettes (*.gpl files) in the given directory")
 
     # This normally should be an option with an argument, but this would end in an error,
     # as no regexp is supposed to be passed after calling this option,
@@ -753,14 +753,14 @@ def __args_parse__(argv, usage=""):
             (styles, colors, special, themes, palettes, colormaps or lexers), \
             use 'all' to print everything.")
 
-    parser.add_argument("--debug", action="store_true",
-            help="Debug mode: print what's going on internally, useful if you want to check what features are available.")
-
     parser.add_argument("-s", "--source", action="store_true",
             help="Interpret REGEX as a source code readable by the Pygments library. \
-                If the first letter of PATTERN is upper case, use the 256 colors mode, \
-                if it is lower case, use the 8 colors mode. \
-                Interpret COLOR as a Pygments style.")
+            If the first letter of PATTERN is upper case, use the 256 colors mode, \
+            if it is lower case, use the 8 colors mode. \
+            Interpret COLOR as a Pygments style." + pygments_warn)
+
+    parser.add_argument("--debug", action="store_true",
+            help="Debug mode: print what's going on internally, useful if you want to check what features are available.")
 
     args = parser.parse_args()
 

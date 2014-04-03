@@ -367,6 +367,39 @@ def colorin(text, color="red", style="normal"):
             color = cmap[i]
             color_code = str(color)
 
+    elif color.lower() == "fraction": # "fraction" or "Fraction"
+
+        # get the different numbers in a list
+        nbs = re.split(r'[^0-9+.,e-]+', text)
+        nbs = [nb for nb in nbs if nb]
+
+        # interpret as decimal
+        try:
+            f = float(nbs[0])/float(nbs[1])
+        except Exception as e:
+            return text
+
+        # if out of scale, do not color
+        if f < 0 or f > 1:
+            return text
+
+        if color[0].islower():
+            mode = 8
+            cmap = colormaps["spectrum"]
+
+            # normalize and scale over the nb of colors in cmap
+            i = int( math.ceil( f * (len(cmap)-1) ) )
+
+            color = cmap[i]
+            color_code = str(30 + colors[color])
+
+        else:
+            mode = 256
+            cmap = colormaps["Spectrum"]
+            i = int( math.ceil( f * (len(cmap)-1) ) )
+            color = cmap[i]
+            color_code = str(color)
+
     # "hash" or "Hash"; useful to randomly but consistently color strings
     elif color.lower() == "hash":
         hasher = hashlib.md5()

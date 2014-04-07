@@ -300,6 +300,7 @@ def colorin(text, color="red", style="normal"):
         else:
             return "<none>"+text+"</none>"
 
+
     elif color == "random":
         mode = 8
         color_code = random.choice(list(colors.values()))
@@ -309,6 +310,7 @@ def colorin(text, color="red", style="normal"):
         mode = 256
         color_nb = random.randint(0, 255)
         color_code = str(color_nb)
+
 
     elif color in colormaps.keys():
         if color[0].islower(): # lower case first letter
@@ -329,22 +331,33 @@ def colorin(text, color="red", style="normal"):
         else:
             colormap_idx = 0
 
+
     elif color.lower() == "scale": # "scale" or "Scale"
 
         # filter out everything that does not seem to be necessary to interpret the string as a number
         # this permits to transform "[ 95%]" to "95" before number conversion,
         # and thus allows to color a group larger than the matched number
-        chars_in_numbers = "-+.,e"
+        chars_in_numbers = "-+.,e/*"
         allowed = string.digits + chars_in_numbers
         nb = "".join([i for i in filter(allowed.__contains__, text)])
 
         # interpret as decimal
+        # First, try with the babel module, if available
+        # if not, use python itself,
+        # if thoses fails, try to `eval` the string
+        # (this allow strings like "1/2+0.9*2")
         try:
             # babel is a specialized module
             import babel.numbers as bn
-            f = float(bn.parse_decimal(nb))
+            try:
+                f = float(bn.parse_decimal(nb))
+            except NumberFormatError:
+                f = eval(nb) # Note: in python2, `eval(2/3)` would produce `0`, in python3 `0.666`
         except ImportError:
-            f = float(nb)
+            try:
+                f = float(nb)
+            except ValueError:
+                f = eval(nb)
 
         # if out of scale, do not color
         if f < scale[0] or f > scale[1]:
@@ -367,38 +380,6 @@ def colorin(text, color="red", style="normal"):
             color = cmap[i]
             color_code = str(color)
 
-    elif color.lower() == "fraction": # "fraction" or "Fraction"
-
-        # get the different numbers in a list
-        nbs = re.split(r'[^0-9+.,e-]+', text)
-        nbs = [nb for nb in nbs if nb]
-
-        # interpret as decimal
-        try:
-            f = float(nbs[0])/float(nbs[1])
-        except Exception as e:
-            return text
-
-        # if out of scale, do not color
-        if f < 0 or f > 1:
-            return text
-
-        if color[0].islower():
-            mode = 8
-            cmap = colormaps["spectrum"]
-
-            # normalize and scale over the nb of colors in cmap
-            i = int( math.ceil( f * (len(cmap)-1) ) )
-
-            color = cmap[i]
-            color_code = str(30 + colors[color])
-
-        else:
-            mode = 256
-            cmap = colormaps["Spectrum"]
-            i = int( math.ceil( f * (len(cmap)-1) ) )
-            color = cmap[i]
-            color_code = str(color)
 
     # "hash" or "Hash"; useful to randomly but consistently color strings
     elif color.lower() == "hash":
@@ -424,6 +405,7 @@ def colorin(text, color="red", style="normal"):
             i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
             color = cmap[i]
             color_code = str(color)
+
 
     # Really useful only when using colout as a library
     # thus you can change the "colormap" variable to your favorite one before calling colorin

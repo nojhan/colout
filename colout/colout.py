@@ -365,7 +365,8 @@ def colorin(text, color="red", style="normal"):
 
         if color[0].islower():
             mode = 8
-            cmap = colormaps["spectrum"]
+            # Use the default colormap in lower case = 8-colors mode
+            cmap = colormap
 
             # normalize and scale over the nb of colors in cmap
             i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
@@ -375,7 +376,7 @@ def colorin(text, color="red", style="normal"):
 
         else:
             mode = 256
-            cmap = colormaps["Spectrum"]
+            cmap = colormap
             i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
             color = cmap[i]
             color_code = str(color)
@@ -391,7 +392,7 @@ def colorin(text, color="red", style="normal"):
 
         if color[0].islower():
             mode = 8
-            cmap = colormaps["rainbow"]
+            cmap = colormap
 
             # normalize and scale over the nb of colors in cmap
             i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
@@ -401,7 +402,7 @@ def colorin(text, color="red", style="normal"):
 
         else:
             mode = 256
-            cmap = colormaps["Rainbow"]
+            cmap = colormap
             i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
             color = cmap[i]
             color_code = str(color)
@@ -472,7 +473,7 @@ def colorin(text, color="red", style="normal"):
     if not debug:
         return start + style_code + endmarks[mode] + color_code + "m" + text + stop
     else:
-        return start + style_code + endmarks[mode] + color_code + "m<" + color + ">" + text + "</" + color + ">" + stop
+        return start + style_code + endmarks[mode] + color_code + "m<" + str(color) + ">" + text + "</" + str(color) + ">" + stop
 
 
 def colorout(text, match, prev_end, color="red", style="normal", group=0):
@@ -731,7 +732,8 @@ def __args_parse__(argv, usage=""):
                 in the pattern instead of over patterns")
 
     parser.add_argument("-c", "--colormap", action="store_true",
-            help="Use the given colors as a colormap (cycle the colors at each match)")
+            help="Interpret the given COLOR comma-separated list of colors as a colormap \
+                (cycle the colors at each match)")
 
     babel_warn=" (numbers will be parsed according to your locale)"
     try:
@@ -741,7 +743,7 @@ def __args_parse__(argv, usage=""):
         babel_warn=" (WARNING: python3-babel is not available, install it \
         if you want to be able to parse numbers according to your locale)"
 
-    parser.add_argument("-l", "--scale",
+    parser.add_argument("-l", "--scale", metavar="SCALE",
             help="When using the 'scale' colormap, parse matches as decimal numbers \
                 and apply the rainbow colormap linearly between the given SCALE=min,max" + babel_warn)
 
@@ -758,6 +760,11 @@ def __args_parse__(argv, usage=""):
 
     parser.add_argument("-P", "--palettes-dir", metavar="DIR", action="append",
             help="Search for additional palettes (*.gpl files) in the given directory")
+
+    parser.add_argument("-d", "--default", metavar="COLORMAP", default="spectrum",
+            help="When using special colormaps (`scale` or `hash`), use this COLORMAP. \
+                This can be either one of the available colormaps or a comma-separated list of colors. \
+                WARNING: be sure to specify a default colormap that is compatible with the special colormap's mode.")
 
     # This normally should be an option with an argument, but this would end in an error,
     # as no regexp is supposed to be passed after calling this option,
@@ -781,7 +788,7 @@ def __args_parse__(argv, usage=""):
 
     return args.pattern[0], args.color, args.style, args.groups, \
            args.colormap, args.theme, args.source, args.all, args.scale, args.debug, args.resources, args.palettes_dir, \
-           args.themes_dir
+           args.themes_dir, args.default
 
 
 def write_all( as_all, stream_in, stream_out, function, *args ):
@@ -816,7 +823,7 @@ if __name__ == "__main__":
     # if argparse is available
     else:
         pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale, \
-        debug, resources, palettes_dirs, themes_dirs \
+        debug, resources, palettes_dirs, themes_dirs, default_colormap \
             = __args_parse__(sys.argv, usage)
 
     if debug:
@@ -917,8 +924,20 @@ if __name__ == "__main__":
             scale = tuple([float(i) for i in myscale.split(",")])
             logging.debug("user-defined scale: %f,%f" % scale)
 
-        # use the generator: output lines as they come
-        if as_colormap is True and color != "rainbow":
+        if default_colormap and default_colormap not in colormaps:
+            colormap = default_colormap.split(",")
+            logging.debug("used-defined default colormap: %s" % ",".join([str(i) for i in colormap]) )
+        elif default_colormap and default_colormap in colormaps:
+            # Configure the default colormap to be in the same mode than the given color
+            if color[0].islower():
+                cmap = default_colormap.lower()
+            else:
+                cmap = default_colormap[0].upper() + default_colormap[1:]
+            logging.debug("used-defined default colormap: %s" % cmap )
+            colormap = colormaps[cmap]
+            logging.debug("used-defined default colormap: %s" % colormap )
+
+        if as_colormap is True and color not in colormaps:
             colormap = color.split(",")  # replace the colormap by the given colors
             color = "colormap"  # use the keyword to switch to colormap instead of list of colors
             logging.debug("used-defined colormap: %s" % ",".join(colormap) )

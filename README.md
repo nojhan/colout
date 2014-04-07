@@ -5,7 +5,7 @@ colout(1) -- Color Up Arbitrary Command Output
 
 `colout` [-h] [-r RESOURCE]
 
-`colout` [-g] [-c] [-l] [-a] [-t] [-T] [-P] [-s] PATTERN [COLOR(S) [STYLE(S)]]
+`colout` [-g] [-c] [-l min,max] [-a] [-t] [-T DIR] [-P DIR] [-d COLORMAP] [-s] [--debug] PATTERN [COLOR(S) [STYLE(S)]]
 
 ## DESCRIPTION
 
@@ -21,24 +21,31 @@ If you ask for fewer colors, the last one will be duplicated across remaining
 groups.
 
 Available colors are: blue, black, yellow, cyan, green, magenta, white, red,
-rainbow, random, Random, scale, none, an RGB hexadecimal triplet or any number
-between 0 and 255.
+rainbow, random, Random, Spectrum, spectrum, scale, Scale, hash, Hash, none, an
+RGB hexadecimal triplet or any number between 0 and 255.
 
 Available styles are: normal, bold, faint, italic, underline, blink,
-rapid_blink, reverse, conceal or random (some styles may have no effect, depending
+rapid\_blink, reverse, conceal or random (some styles may have no effect, depending
 on your terminal).
 
-`rainbow` will cycle over a 8 colors rainbow at each matching pattern.
+`rainbow` will cycle over a 6 colors rainbow at each matching pattern.
 `Rainbow` will do the same over 24 colors (this requires a terminal that supports
 the 256 color escape sequences).
 
 `Random` will color each matching pattern with a random color among the 255
 available in the ANSI table. `random` will do the same in 8 colors mode.
 
-`scale` (8 colors) and `Scale` (36 colors) will parse the numbers characters in
-the matching text as a decimal number and apply the rainbow colormap according
+`spectrum` and `Spectrum` are like rainbows, but with more colors (8 and 36
+colors).
+
+`scale` (8 colors) and `Scale` (256 colors) will parse the numbers characters in
+the matching text as a decimal number and apply the default colormap according
 to its position on the scale defined by the `-l` option (see below, "0,100" by
 default).
+
+`hash` (8 colors) and `Hash` (256 colors) will take a fingerprint of the matching
+text and apply the default colormap according to it. This ensure that matching
+texts appearing several times will always get the same color.
 
 Before interpreting the matched string as a number, colout will remove any
 character not supposed to be used to write down numbers. This permits to apply
@@ -47,7 +54,7 @@ this special color on a large group, while interpreting only its numerical part.
 If the python3-pygments library is installed, you can use the name of a
 syntax-coloring "lexer" as a color (for example: "Cpp", "ruby", "xml+django", etc.).
 
-If GIMP palettes files (*.gpl) are available, you can also use their names as a
+If GIMP palettes files (\*.gpl) are available, you can also use their names as a
 colormap (see the `-P` switch below).
 
 Note that the RGB colors (either the hex triplets or the palettes's colors) will
@@ -120,10 +127,17 @@ Gentoo
   Interpret PATTERN as a predefined theme (perm, cmake, g++, etc.).
 
 * `-T DIR`, `--themes-dir DIR`:
-  Search for additional themes (colout_*.py files) in this directory.
+  Search for additional themes (colout\_\*.py files) in this directory.
 
 * `-P DIR`, `--palettes-dir DIR`:
-  Search for additional palettes (*.gpl files) in this directory.
+  Search for additional palettes (\*.gpl files) in this directory.
+
+* `-d COLORMAP`, `--default COLORMAP`:
+  When using special colormaps (`scale` or `hash`), use this COLORMAP instead of the `spectrum` one.
+  This can be either one of the available colormaps or a comma-separated list of colors.
+  WARNING: be sure to specify a default colormap that is compatible with the special colormap's mode.
+  For instance, if you indicate `scale`, you can use `-d red,green,blue`, but `-d 12,13,14` will fail.
+  Also, if you specify `Scale`, you cannot use `-d red,green,blue`, but `-d Rainbow` will work.
 
 * `-r TYPE(S)`, `--resources TYPE(S)`:
   Print the names of available resources. Use a comma-separated list of resources names
@@ -160,7 +174,11 @@ Recommended packages:
 
 ## LIMITATIONS
 
-Don't use nested groups or colout will duplicate the corresponding input text with each matching colors.
+Don't use nested groups or colout will duplicate the corresponding input text
+with each matching colors.
+
+Using a default colormap that is incompatible with the special colormap's mode
+will end badly.
 
 
 ## EXAMPLES
@@ -228,11 +246,14 @@ Don't use nested groups or colout will duplicate the corresponding input text wi
   related to the value of the progress (from 0%=blue to 100%=red):
   `cmake .. && make | colout "^(\[\s*[0-9]+%\])" Scale`
 
+* Color hosts and users in `auth.log`, with consistent colors:
+  `cat /var/log/auth.log | colout "^(\S+\s+){3}(\S+)\s(\S+\s+){3}(\S+)\s+(\S+\s+){2}(\S+)\s*" none,hash,none,hash,none,hash`
+
 
 ### Bash alias
 
 The following bash function color the output of any command with the
-cmake and g77 themes:
+cmake and g++ themes:
 
     function cm()
     {

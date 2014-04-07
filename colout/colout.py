@@ -865,32 +865,44 @@ if __name__ == "__main__":
 
     if resources:
         asked=[r.lower() for r in pattern.split(",")]
+
+        def join_sort( l ):
+            """
+            Sort the given list in lexicographical order,
+            with upper-cases first, then lower cases
+            join the list with a comma.
+
+            >>> join_sort(["a","B","A","b"])
+            'A, a, B, b'
+            """
+            return ", ".join(sorted(l, key=lambda s: s.lower()+s))
+
         # print("Available resources:")
         for res in asked:
             if "style" in res or "all" in res:
-                print("STYLES: %s" % ", ".join(styles) )
+                print("STYLES: %s" % join_sort(styles) )
 
             if "color" in res or "all" in res:
-                print("COLORS: %s" % ", ".join(colors) )
+                print("COLORS: %s" % join_sort(colors) )
 
             if "special" in res or "all" in res:
-                print("SPECIAL: %s" % ", ".join(["random", "Random", "scale", "Scale", "hash", "Hash", "colormap"]) )
+                print("SPECIAL: %s" % join_sort(["random", "Random", "scale", "Scale", "hash", "Hash", "colormap"]) )
 
             if "theme" in res or "all" in res:
                 if len(themes) > 0:
-                    print("THEMES: %s" % ", ".join(themes.keys()) )
+                    print("THEMES: %s" % join_sort(themes.keys()) )
                 else:
                     print("NO THEME")
 
             if "colormap" in res or "all" in res:
                 if len(colormaps) > 0:
-                    print("COLORMAPS: %s" % ", ".join(colormaps) )
+                    print("COLORMAPS: %s" % join_sort(colormaps) )
                 else:
                     print("NO COLORMAPS")
 
             if "lexer" in res or "all" in res:
                 if len(lexers) > 0:
-                    print("SYNTAX COLORING: %s" % ", ".join(lexers) )
+                    print("SYNTAX COLORING: %s" % join_sort(lexers) )
                 else:
                     print("NO SYNTAX COLORING (check that python3-pygments is installed)")
 

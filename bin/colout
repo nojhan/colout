@@ -8,4 +8,4 @@
 set -e
 set -u
 
-python3 -m colout.colout "$@"
+python -m colout.colout "$@"

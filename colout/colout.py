@@ -5,6 +5,9 @@
 # Licensed under the GPL version 3
 # 2012 (c) nojhan <nojhan@nojhan.net>
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+from pies.overrides import *
+
 import sys
 import re
 import random
@@ -241,7 +244,7 @@ def load_lexers():
             try:
                 lexers.append(lexer[1][0])
             except IndexError:
-                logging.warning("cannot load lexer: %s" % lexer[1][0])
+                logging.warning("cannot load lexer: %s" % lexer[0])
                 pass
             else:
                 logging.debug("loaded lexer %s" % lexer[1][0])
@@ -272,9 +275,6 @@ def colorin(text, color="red", style="normal"):
     >>> colout.colorin("Faites chier la vache", 41, "normal")
     '\x1b[0;38;5;41mFaites chier la vache\x1b[0m'
     """
-
-    assert( type(color) is str )
-
     global colormap_idx
     global debug
 

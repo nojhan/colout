@@ -5,6 +5,9 @@
 # Licensed under the GPL version 3
 # 2012 (c) nojhan <nojhan@nojhan.net>
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+from pies.overrides import *
+
 import sys
 import re
 import random

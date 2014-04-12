@@ -275,9 +275,6 @@ def colorin(text, color="red", style="normal"):
     >>> colout.colorin("Faites chier la vache", 41, "normal")
     '\x1b[0;38;5;41mFaites chier la vache\x1b[0m'
     """
-
-    assert( type(color) is str )
-
     global colormap_idx
     global debug
 

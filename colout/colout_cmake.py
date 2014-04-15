@@ -45,5 +45,5 @@ def theme():
         # progress percentage (make)
         [ "^(\[\s*[0-9]+%\])","Scale" ],
         # progress percentage (ninja)
-        [ "^(\[[0-9]+/[0-9]+\])","Fraction" ]
+        [ "^(\[[0-9]+/[0-9]+\])","Scale" ]
     ]

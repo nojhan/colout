@@ -159,7 +159,7 @@ colormaps = {
     "Spectrum" : [91, 92, 56, 57, 21, 27, 26, 32, 31, 37, 36, 35, 41, 40, 41, 77, 83, 84, 120, 121, 157, 194, 231, 254, 255, 231, 230, 229, 228, 227, 226, 220, 214, 208, 202, 196]
 } # colormaps
 
-colormap = colormaps["rainbow"]  # default colormap to rainbow
+colormap = colormaps["rainbow"]
 colormap_idx = 0
 
 scale = (0,100)
@@ -348,8 +348,9 @@ def color_scale( color, text ):
     # normalize and scale over the nb of colors in cmap
     i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(colormap)-1) ) )
 
-    m = mode(color)
     color = colormap[i]
+    # infer mode from the color in the colormap
+    m = mode(color)
 
     if m == 8:
         color_code = str(30 + colors[color])
@@ -369,8 +370,10 @@ def color_hash( color, text ):
     # normalize and scale over the nb of colors in cmap
     i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(colormap)-1) ) )
 
-    m = mode(color)
     color = colormap[i]
+    # infer mode from the color in the colormap
+    m = mode(color)
+
     if m == 8:
         color_code = str(30 + colors[color])
     else:

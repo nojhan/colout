@@ -159,7 +159,13 @@ colormaps = {
     "Spectrum" : [91, 92, 56, 57, 21, 27, 26, 32, 31, 37, 36, 35, 41, 40, 41, 77, 83, 84, 120, 121, 157, 194, 231, 254, 255, 231, 230, 229, 228, 227, 226, 220, 214, 208, 202, 196]
 } # colormaps
 
-colormap = colormaps["rainbow"]
+colormaps["scale"] = colormaps["spectrum"]
+colormaps["Scale"] = colormaps["Spectrum"]
+colormaps["hash"] = colormaps["rainbow"]
+colormaps["Hash"] = colormaps["Rainbow"]
+colormaps["default"] = colormaps["spectrum"]
+colormaps["Default"] = colormaps["Spectrum"]
+
 colormap_idx = 0
 
 scale = (0,100)
@@ -280,6 +286,7 @@ def mode( color ):
 
 
 def next_in_map( color ):
+    global colormap_idx
     # loop over indices in colormap
     return (colormap_idx+1) % len(colormaps[color])
 
@@ -298,6 +305,7 @@ def color_random( color ):
 
 
 def color_in_colormaps( color ):
+    global colormap_idx
     m = mode(color)
     if m == 8:
         c = colormaps[color][colormap_idx]
@@ -315,7 +323,7 @@ def color_in_colormaps( color ):
     return color_code
 
 
-def color_scale( color, text ):
+def color_scale( name, text ):
     # filter out everything that does not seem to be necessary to interpret the string as a number
     # this permits to transform "[ 95%]" to "95" before number conversion,
     # and thus allows to color a group larger than the matched number
@@ -346,9 +354,10 @@ def color_scale( color, text ):
         return text
 
     # normalize and scale over the nb of colors in cmap
+    colormap = colormaps[name]
     i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(colormap)-1) ) )
-
     color = colormap[i]
+
     # infer mode from the color in the colormap
     m = mode(color)
 
@@ -360,7 +369,7 @@ def color_scale( color, text ):
     return color_code
 
 
-def color_hash( color, text ):
+def color_hash( name, text ):
     hasher = hashlib.md5()
     hasher.update(text.encode('utf-8'))
     hash = hasher.hexdigest()
@@ -368,9 +377,10 @@ def color_hash( color, text ):
     f = float(functools.reduce(lambda x, y: x+ord(y), hash, 0) % 101)
 
     # normalize and scale over the nb of colors in cmap
+    colormap = colormaps[name]
     i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(colormap)-1) ) )
-
     color = colormap[i]
+
     # infer mode from the color in the colormap
     m = mode(color)
 
@@ -382,14 +392,14 @@ def color_hash( color, text ):
     return color_code
 
 
-def color_map():
+def color_map(name):
+    global colormap_idx
     # current color
-    color = colormap[colormap_idx]
+    color = colormaps[name][colormap_idx]
 
     m = mode(color)
     if m == 8:
         color_code = str(30 + colors[color])
-
     else:
         color_nb = int(color)
         assert( ansi_min <= color_nb <= ansi_max )
@@ -400,10 +410,10 @@ def color_map():
     return color_code
 
 
-def color_lexer( color, style, text ):
-    lexer = get_lexer_by_name(color.lower())
+def color_lexer( name, style, text ):
+    lexer = get_lexer_by_name(name.lower())
     # Python => 256 colors, python => 8 colors
-    m = mode(color)
+    m = mode(name)
     if m == 256:
         try:
             formatter = Terminal256Formatter(style=style)
@@ -418,7 +428,7 @@ def color_lexer( color, style, text ):
     if not debug:
         return highlight(text, lexer, formatter)[:-1]
     else:
-        return "<"+color+">"+ highlight(text, lexer, formatter)[:-1] + "</"+color+">"
+        return "<"+name+">"+ highlight(text, lexer, formatter)[:-1] + "</"+name+">"
 
 
 def colorin(text, color="red", style="normal"):
@@ -481,7 +491,7 @@ def colorin(text, color="red", style="normal"):
     # Really useful only when using colout as a library
     # thus you can change the "colormap" variable to your favorite one before calling colorin
     elif color == "colormap":
-        color_code = color_map()
+        color_code = color_map(color)
 
     # 8 colors modes
     elif color in colors:
@@ -512,7 +522,9 @@ def colorin(text, color="red", style="normal"):
         return start + style_code + endmarks[m] + color_code + "m" + text + stop
     else:
         return start + style_code + endmarks[m] + color_code + "m" \
-                + "<color name=" + str(color) + " code=" + color_code + " style=" + str(style) + " stylecode=" + style_code + ">" \
+                + "<color name=" + str(color) + " code=" + color_code \
+                + " style=" + str(style) + " stylecode=" + style_code \
+                + " mode=" + str(m) + ">" \
                 + text + "</color>" + stop
 
 
@@ -964,23 +976,23 @@ if __name__ == "__main__":
             scale = tuple([float(i) for i in myscale.split(",")])
             logging.debug("user-defined scale: %f,%f" % scale)
 
-        if default_colormap and default_colormap not in colormaps:
-            colormap = default_colormap.split(",")
-            logging.debug("used-defined default colormap: %s" % ",".join([str(i) for i in colormap]) )
-        elif default_colormap and default_colormap in colormaps:
-            # Configure the default colormap to be in the same mode than the given color
-            if color[0].islower():
-                cmap = default_colormap.lower()
-            else:
-                cmap = default_colormap[0].upper() + default_colormap[1:]
-            logging.debug("used-defined default colormap: %s" % cmap )
-            colormap = colormaps[cmap]
-            logging.debug("used-defined default colormap: %s" % colormap )
+        # Default color maps
+        if default_colormap not in colormaps:
+            cmap = default_colormap.split(",")
 
+        elif default_colormap in colormaps:
+            cmap = colormaps[default_colormap]
+
+        colormaps[color] = cmap
+        logging.debug("used-defined default colormap: %s" % ",".join([str(i) for i in cmap]) )
+
+
+        # explicit color map
         if as_colormap is True and color not in colormaps:
-            colormap = color.split(",")  # replace the colormap by the given colors
+            colormaps["Default"] = color.split(",")  # replace the colormap by the given colors
+            colormaps["default"] = color.split(",")  # replace the colormap by the given colors
             color = "colormap"  # use the keyword to switch to colormap instead of list of colors
-            logging.debug("used-defined colormap: %s" % ",".join(colormap) )
+            logging.debug("used-defined colormap: %s" % ",".join(colormaps["Default"]) )
 
         # if theme
         if as_theme:

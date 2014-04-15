@@ -258,6 +258,166 @@ def load_resources( themes_dir, palettes_dir ):
 # Library
 ###############################################################################
 
+def mode( color ):
+    if color in colors:
+        return 8
+    elif color in colormaps.keys():
+        if color[0].islower():
+            return 8
+        elif color[0].isupper():
+            return 256
+    elif color.lower() in ("scale","hash","random") or color.lower() in lexers:
+        if color[0].islower():
+            return 8
+        elif color[0].isupper():
+            return 256
+    elif color[0] == "#":
+        return 256
+    elif color.isdigit() and (ansi_min < int(color) and int(color) < ansi_max) :
+        return 256
+    else:
+        raise UnknownColor(color)
+
+
+def next_in_map( color ):
+    # loop over indices in colormap
+    return (colormap_idx+1) % len(colormaps[color])
+
+
+def color_random( color ):
+    m = mode(color)
+    if m == 8:
+        color_code = random.choice(list(colors.values()))
+        color_code = str(30 + color_code)
+
+    elif m == 256:
+        color_nb = random.randint(0, 255)
+        color_code = str(color_nb)
+
+    return color_code
+
+
+def color_in_colormaps( color ):
+    m = mode(color)
+    if m == 8:
+        c = colormaps[color][colormap_idx]
+        if c.isdigit():
+            color_code = str(30 + c)
+        else:
+            color_code = str(30 + colors[c])
+
+    else:
+        color_nb = colormaps[color][colormap_idx]
+        color_code = str( color_nb )
+
+    colormap_idx = next_in_map(color)
+
+    return color_code
+
+
+def color_scale( color, text ):
+    # filter out everything that does not seem to be necessary to interpret the string as a number
+    # this permits to transform "[ 95%]" to "95" before number conversion,
+    # and thus allows to color a group larger than the matched number
+    chars_in_numbers = "-+.,e/*"
+    allowed = string.digits + chars_in_numbers
+    nb = "".join([i for i in filter(allowed.__contains__, text)])
+
+    # interpret as decimal
+    # First, try with the babel module, if available
+    # if not, use python itself,
+    # if thoses fails, try to `eval` the string
+    # (this allow strings like "1/2+0.9*2")
+    try:
+        # babel is a specialized module
+        import babel.numbers as bn
+        try:
+            f = float(bn.parse_decimal(nb))
+        except NumberFormatError:
+            f = eval(nb) # Note: in python2, `eval(2/3)` would produce `0`, in python3 `0.666`
+    except ImportError:
+        try:
+            f = float(nb)
+        except ValueError:
+            f = eval(nb)
+
+    # if out of scale, do not color
+    if f < scale[0] or f > scale[1]:
+        return text
+
+    # normalize and scale over the nb of colors in cmap
+    i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(colormap)-1) ) )
+
+    m = mode(color)
+    color = colormap[i]
+
+    if m == 8:
+        color_code = str(30 + colors[color])
+    else:
+        color_code = str(color)
+
+    return color_code
+
+
+def color_hash( color, text ):
+    hasher = hashlib.md5()
+    hasher.update(text.encode('utf-8'))
+    hash = hasher.hexdigest()
+
+    f = float(functools.reduce(lambda x, y: x+ord(y), hash, 0) % 101)
+
+    # normalize and scale over the nb of colors in cmap
+    i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(colormap)-1) ) )
+
+    m = mode(color)
+    color = colormap[i]
+    if m == 8:
+        color_code = str(30 + colors[color])
+    else:
+        color_code = str(color)
+
+    return color_code
+
+
+def color_map():
+    # current color
+    color = colormap[colormap_idx]
+
+    m = mode(color)
+    if m == 8:
+        color_code = str(30 + colors[color])
+
+    else:
+        color_nb = int(color)
+        assert( ansi_min <= color_nb <= ansi_max )
+        color_code = str(color_nb)
+
+    colormap_idx = next_in_map(color)
+
+    return color_code
+
+
+def color_lexer( color, style, text ):
+    lexer = get_lexer_by_name(color.lower())
+    # Python => 256 colors, python => 8 colors
+    m = mode(color)
+    if m == 256:
+        try:
+            formatter = Terminal256Formatter(style=style)
+        except:  # style not found
+            formatter = Terminal256Formatter()
+    else:
+        if style not in ("light","dark"):
+            style = "dark" # dark color scheme by default
+        formatter = TerminalFormatter(bg=style)
+        # We should return all but the last character,
+        # because Pygments adds a newline char.
+    if not debug:
+        return highlight(text, lexer, formatter)[:-1]
+    else:
+        return "<"+color+">"+ highlight(text, lexer, formatter)[:-1] + "</"+color+">"
+
+
 def colorin(text, color="red", style="normal"):
     """
     Return the given text, surrounded by the given color ASCII markers.
@@ -293,6 +453,8 @@ def colorin(text, color="red", style="normal"):
             style_code = str(styles[style])
 
     color = color.strip()
+    m = mode(color)
+
     if color == "none":
         # if no color, style cannot be applied
         if not debug:
@@ -300,180 +462,55 @@ def colorin(text, color="red", style="normal"):
         else:
             return "<none>"+text+"</none>"
 
-
-    elif color == "random":
-        mode = 8
-        color_code = random.choice(list(colors.values()))
-        color_code = str(30 + color_code)
-
-    elif color == "Random":
-        mode = 256
-        color_nb = random.randint(0, 255)
-        color_code = str(color_nb)
-
+    elif color.lower() == "random":
+        color_code = color_random( color )
 
     elif color in colormaps.keys():
-        if color[0].islower(): # lower case first letter
-            mode = 8
-            c = colormaps[color][colormap_idx]
-            if c.isdigit():
-                color_code = str(30 + c)
-            else:
-                color_code = str(30 + colors[c])
-
-        else: # upper case
-            mode = 256
-            color_nb = colormaps[color][colormap_idx]
-            color_code = str( color_nb )
-
-        if colormap_idx < len(colormaps[color])-1:
-            colormap_idx += 1
-        else:
-            colormap_idx = 0
-
+        color_code = color_in_colormaps( color )
 
     elif color.lower() == "scale": # "scale" or "Scale"
-
-        # filter out everything that does not seem to be necessary to interpret the string as a number
-        # this permits to transform "[ 95%]" to "95" before number conversion,
-        # and thus allows to color a group larger than the matched number
-        chars_in_numbers = "-+.,e/*"
-        allowed = string.digits + chars_in_numbers
-        nb = "".join([i for i in filter(allowed.__contains__, text)])
-
-        # interpret as decimal
-        # First, try with the babel module, if available
-        # if not, use python itself,
-        # if thoses fails, try to `eval` the string
-        # (this allow strings like "1/2+0.9*2")
-        try:
-            # babel is a specialized module
-            import babel.numbers as bn
-            try:
-                f = float(bn.parse_decimal(nb))
-            except NumberFormatError:
-                f = eval(nb) # Note: in python2, `eval(2/3)` would produce `0`, in python3 `0.666`
-        except ImportError:
-            try:
-                f = float(nb)
-            except ValueError:
-                f = eval(nb)
-
-        # if out of scale, do not color
-        if f < scale[0] or f > scale[1]:
-            return text
-
-        if color[0].islower():
-            mode = 8
-            # Use the default colormap in lower case = 8-colors mode
-            cmap = colormap
-
-            # normalize and scale over the nb of colors in cmap
-            i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
-
-            color = cmap[i]
-            color_code = str(30 + colors[color])
-
-        else:
-            mode = 256
-            cmap = colormap
-            i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
-            color = cmap[i]
-            color_code = str(color)
-
+        color_code = color_scale( color, text )
 
     # "hash" or "Hash"; useful to randomly but consistently color strings
     elif color.lower() == "hash":
-        hasher = hashlib.md5()
-        hasher.update(text.encode('utf-8'))
-        hash = hasher.hexdigest()
-
-        f = float(functools.reduce(lambda x, y: x+ord(y), hash, 0) % 101)
-
-        if color[0].islower():
-            mode = 8
-            cmap = colormap
-
-            # normalize and scale over the nb of colors in cmap
-            i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
-
-            color = cmap[i]
-            color_code = str(30 + colors[color])
-
-        else:
-            mode = 256
-            cmap = colormap
-            i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(cmap)-1) ) )
-            color = cmap[i]
-            color_code = str(color)
-
+        color_code = color_hash( color, text )
 
     # Really useful only when using colout as a library
     # thus you can change the "colormap" variable to your favorite one before calling colorin
     elif color == "colormap":
-        color = colormap[colormap_idx]
-        if color in colors:
-            mode = 8
-            color_code = str(30 + colors[color])
-        else:
-            mode = 256
-            color_nb = int(color)
-            assert(0 <= color_nb <= 255)
-            color_code = str(color_nb)
-
-        if colormap_idx < len(colormap)-1:
-            colormap_idx += 1
-        else:
-            colormap_idx = 0
+        color_code = color_map()
 
     # 8 colors modes
     elif color in colors:
-        mode = 8
         color_code = str(30 + colors[color])
 
     # hexadecimal color
     elif color[0] == "#":
-        mode = 256
         color_nb = rgb_to_ansi(*hex_to_rgb(color))
         assert(0 <= color_nb <= 255)
         color_code = str(color_nb)
 
     # 256 colors mode
     elif color.isdigit():
-        mode = 256
         color_nb = int(color)
         assert(0 <= color_nb <= 255)
         color_code = str(color_nb)
 
     # programming language
     elif color.lower() in lexers:
-        lexer = get_lexer_by_name(color.lower())
-        # Python => 256 colors, python => 8 colors
-        ask_256 = color[0].isupper()
-        if ask_256:
-            try:
-                formatter = Terminal256Formatter(style=style)
-            except:  # style not found
-                formatter = Terminal256Formatter()
-        else:
-            if style not in ("light","dark"):
-                style = "dark" # dark color scheme by default
-            formatter = TerminalFormatter(bg=style)
-            # We should return all but the last character,
-            # because Pygments adds a newline char.
-        if not debug:
-            return highlight(text, lexer, formatter)[:-1]
-        else:
-            return "<"+color+">"+ highlight(text, lexer, formatter)[:-1] + "</"+color+">"
+        # bypass color encoding and return text colored by the lexer
+        return color_lexer(color,style,text)
 
     # unrecognized
     else:
         raise UnknownColor(color)
 
     if not debug:
-        return start + style_code + endmarks[mode] + color_code + "m" + text + stop
+        return start + style_code + endmarks[m] + color_code + "m" + text + stop
     else:
-        return start + style_code + endmarks[mode] + color_code + "m<" + str(color) + ">" + text + "</" + str(color) + ">" + stop
+        return start + style_code + endmarks[m] + color_code + "m" \
+                + "<color name=" + str(color) + " code=" + color_code + " style=" + str(style) + " stylecode=" + style_code + ">" \
+                + text + "</color>" + stop
 
 
 def colorout(text, match, prev_end, color="red", style="normal", group=0):

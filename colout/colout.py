@@ -351,7 +351,7 @@ def color_scale( name, text ):
 
     # if out of scale, do not color
     if f < scale[0] or f > scale[1]:
-        return text
+        return None
 
     # normalize and scale over the nb of colors in cmap
     colormap = colormaps[name]
@@ -448,7 +448,6 @@ def colorin(text, color="red", style="normal"):
 
     assert( type(color) is str )
 
-    global colormap_idx
     global debug
 
     # Special characters.
@@ -518,14 +517,20 @@ def colorin(text, color="red", style="normal"):
     else:
         raise UnknownColor(color)
 
-    if not debug:
-        return start + style_code + endmarks[m] + color_code + "m" + text + stop
+    if color_code is not None:
+        if not debug:
+            return start + style_code + endmarks[m] + color_code + "m" + text + stop
+        else:
+            return start + style_code + endmarks[m] + color_code + "m" \
+                    + "<color name=" + str(color) + " code=" + color_code \
+                    + " style=" + str(style) + " stylecode=" + style_code \
+                    + " mode=" + str(m) + ">" \
+                    + text + "</color>" + stop
     else:
-        return start + style_code + endmarks[m] + color_code + "m" \
-                + "<color name=" + str(color) + " code=" + color_code \
-                + " style=" + str(style) + " stylecode=" + style_code \
-                + " mode=" + str(m) + ">" \
-                + text + "</color>" + stop
+        if not debug:
+            return text
+        else:
+            return "<none>" + text + "</none>"
 
 
 def colorout(text, match, prev_end, color="red", style="normal", group=0):

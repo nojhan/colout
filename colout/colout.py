@@ -391,7 +391,7 @@ def color_scale( name, text ):
 
     # normalize and scale over the nb of colors in cmap
     colormap = context["colormaps"][name]
-    i = int( math.ceil( (f - context["scale"][0]) / (context["scale"][1]-context["scale"][0]) * len(colormap) ) ) - 1
+    i = int( math.ceil( (f - context["scale"][0]) / (context["scale"][1]-context["scale"][0]) * (len(colormap)-1) ) )
     color = colormap[i]
 
     # infer mode from the color in the colormap

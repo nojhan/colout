@@ -372,26 +372,33 @@ def color_scale( name, text ):
     # if not, use python itself,
     # if thoses fails, try to `eval` the string
     # (this allow strings like "1/2+0.9*2")
+    f = None
     try:
         # babel is a specialized module
         import babel.numbers as bn
         try:
             f = float(bn.parse_decimal(nb))
         except bn.NumberFormatError:
-            f = eval(nb) # Note: in python2, `eval(2/3)` would produce `0`, in python3 `0.666`
+            pass
     except ImportError:
         try:
             f = float(nb)
         except ValueError:
-            f = eval(nb)
+            pass
+    if f is not None:
+        # normalize with scale if it's a number
+        f = (f - context["scale"][0]) / (context["scale"][1]-context["scale"][0])
+    else:
+        # interpret as float between 0 and 1 otherwise
+        f = eval(nb)
 
     # if out of scale, do not color
-    if f < context["scale"][0] or f > context["scale"][1]:
+    if f < 0 or f > 1:
         return None
 
     # normalize and scale over the nb of colors in cmap
     colormap = context["colormaps"][name]
-    i = int( math.ceil( (f - context["scale"][0]) / (context["scale"][1]-context["scale"][0]) * (len(colormap)-1) ) )
+    i = int( math.ceil( f * (len(colormap)-1) ) )
     color = colormap[i]
 
     # infer mode from the color in the colormap

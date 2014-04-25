@@ -377,7 +377,7 @@ def color_scale( name, text ):
         import babel.numbers as bn
         try:
             f = float(bn.parse_decimal(nb))
-        except NumberFormatError:
+        except bn.NumberFormatError:
             f = eval(nb) # Note: in python2, `eval(2/3)` would produce `0`, in python3 `0.666`
     except ImportError:
         try:

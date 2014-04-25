@@ -138,6 +138,8 @@ Gentoo
   WARNING: be sure to specify a default colormap that is compatible with the special colormap's mode.
   For instance, if you indicate `scale`, you can use `-d red,green,blue`, but `-d 12,13,14` will fail.
   Also, if you specify `Scale`, you cannot use `-d red,green,blue`, but `-d Rainbow` will work.
+  Similarly, external palettes are converted from RGB to 256-ANSI and will thus not work if you use
+  them as default colormaps for a 8-colors mode special color.
 
 * `-r TYPE(S)`, `--resources TYPE(S)`:
   Print the names of available resources. Use a comma-separated list of resources names

@@ -24,8 +24,75 @@ signal.signal( signal.SIGPIPE, signal.SIG_DFL )
 
 
 ###############################################################################
+# Global variables
+###############################################################################
+
+# Escaped end markers for given color modes
+endmarks = {8: ";", 256: ";38;5;"}
+
+# Available styles
+styles = {
+    "normal": 0, "bold": 1, "faint": 2, "italic": 3, "underline": 4,
+    "blink": 5, "rapid_blink": 6,
+    "reverse": 7, "conceal": 8
+}
+
+# Available color names in 8-colors mode
+colors = {
+    "black": 0, "red": 1, "green": 2, "yellow": 3, "orange":3, "blue": 4,
+    "magenta": 5, "purple": 5, "cyan": 6, "white": 7, "none": -1
+}
+
+themes = {}
+
+# pre-defined colormaps
+# 8-colors mode should start with a lower-case letter (and can contains either named or indexed colors)
+# 256-colors mode should start with an upper-case letter (and should contains indexed colors)
+colormaps = {
+    # Rainbows
+    "rainbow" : ["magenta", "blue", "cyan", "green", "yellow", "red"],
+    "Rainbow" : [92, 93, 57, 21, 27, 33, 39, 45, 51, 50, 49, 48, 47, 46, 82, 118, 154, 190, 226, 220, 214, 208, 202, 196],
+
+    # from magenta to red, with white in the middle
+    "spectrum" : ["magenta", "blue", "cyan", "white", "green", "yellow", "red"],
+    "Spectrum" : [91, 92, 56, 57, 21, 27, 26, 32, 31, 37, 36, 35, 41, 40, 41, 77, 83, 84, 120, 121, 157, 194, 231, 254, 255, 231, 230, 229, 228, 227, 226, 220, 214, 208, 202, 196]
+} # colormaps
+
+colormaps["scale"] = colormaps["spectrum"]
+colormaps["Scale"] = colormaps["Spectrum"]
+colormaps["hash"] = colormaps["rainbow"]
+colormaps["Hash"] = colormaps["Rainbow"]
+colormaps["default"] = colormaps["spectrum"]
+colormaps["Default"] = colormaps["Spectrum"]
+
+colormap_idx = 0
+
+scale = (0,100)
+
+class UnknownColor(Exception):
+    pass
+
+class DuplicatedPalette(Exception):
+    pass
+
+class DuplicatedTheme(Exception):
+    pass
+
+
+###############################################################################
 # Ressource parsing helpers
 ###############################################################################
+
+
+def set_special_colormaps( cmap ):
+    """Change all the special colors to a single colormap (which must be a list of colors)."""
+    colormaps["scale"]   = cmap
+    colormaps["Scale"]   = cmap
+    colormaps["hash"]    = cmap
+    colormaps["Hash"]    = cmap
+    colormaps["default"] = cmap
+    colormaps["Default"] = cmap
+
 
 def parse_gimp_palette( filename ):
     """
@@ -90,7 +157,13 @@ def uniq( lst ):
 
 def rgb_to_ansi( r, g, b ):
     """Convert a RGB color to its closest 256-colors ANSI index"""
-    # ansi_max is the higher possible RGB value for ANSI colors
+
+    # Range limits for the *colored* section of ANSI,
+    # this does not include the *gray* section.
+    ansi_min = 16
+    ansi_max = 234
+
+    # ansi_max is the higher possible RGB value for ANSI *colors*
     # limit RGB values to ansi_max
     red,green,blue = tuple([ansi_max if c>ansi_max else c for c in (r,g,b)])
 
@@ -122,65 +195,6 @@ def hex_to_rgb(h):
 
 
 ###############################################################################
-# Global variables
-###############################################################################
-
-# Escaped end markers for given color modes
-endmarks = {8: ";", 256: ";38;5;"}
-
-ansi_min = 16
-ansi_max = 234
-
-# Available styles
-styles = {
-    "normal": 0, "bold": 1, "faint": 2, "italic": 3, "underline": 4,
-    "blink": 5, "rapid_blink": 6,
-    "reverse": 7, "conceal": 8
-}
-
-# Available color names in 8-colors mode
-colors = {
-    "black": 0, "red": 1, "green": 2, "yellow": 3, "orange":3, "blue": 4,
-    "magenta": 5, "purple": 5, "cyan": 6, "white": 7, "none": -1
-}
-
-themes = {}
-
-# pre-defined colormaps
-# 8-colors mode should start with a lower-case letter (and can contains either named or indexed colors)
-# 256-colors mode should start with an upper-case letter (and should contains indexed colors)
-colormaps = {
-    # Rainbows
-    "rainbow" : ["magenta", "blue", "cyan", "green", "yellow", "red"],
-    "Rainbow" : [92, 93, 57, 21, 27, 33, 39, 45, 51, 50, 49, 48, 47, 46, 82, 118, 154, 190, 226, 220, 214, 208, 202, 196],
-
-    # from magenta to red, with white in the middle
-    "spectrum" : ["magenta", "blue", "cyan", "white", "green", "yellow", "red"],
-    "Spectrum" : [91, 92, 56, 57, 21, 27, 26, 32, 31, 37, 36, 35, 41, 40, 41, 77, 83, 84, 120, 121, 157, 194, 231, 254, 255, 231, 230, 229, 228, 227, 226, 220, 214, 208, 202, 196]
-} # colormaps
-
-colormaps["scale"] = colormaps["spectrum"]
-colormaps["Scale"] = colormaps["Spectrum"]
-colormaps["hash"] = colormaps["rainbow"]
-colormaps["Hash"] = colormaps["Rainbow"]
-colormaps["default"] = colormaps["spectrum"]
-colormaps["Default"] = colormaps["Spectrum"]
-
-colormap_idx = 0
-
-scale = (0,100)
-
-class UnknownColor(Exception):
-    pass
-
-class DuplicatedPalette(Exception):
-    pass
-
-class DuplicatedTheme(Exception):
-    pass
-
-
-###############################################################################
 # Load available extern resources
 ###############################################################################
 
@@ -199,7 +213,7 @@ def load_themes( themes_dir):
         themes[name] = importlib.import_module(module)
 
 
-def load_palettes( palettes_dir ):
+def load_palettes( palettes_dir, ignore_duplicates = True ):
     global colormaps
     logging.debug("search for palettes in: %s" % palettes_dir)
     os.chdir( palettes_dir )
@@ -212,7 +226,10 @@ def load_palettes( palettes_dir ):
             logging.warning("error while parsing palette %s: %s" % ( p,e ) )
             continue
         if name in colormaps:
-            raise DuplicatedPalette(name)
+            if ignore_duplicates:
+                logging.warning("ignore this duplicated palette name: %s" % name)
+            else:
+                raise DuplicatedPalette(name)
         # Convert the palette to ANSI
         ansi_palette = [ rgb_to_ansi(r,g,b) for r,g,b in palette ]
         # Compress it so that there isn't two consecutive identical colors
@@ -265,7 +282,12 @@ def load_resources( themes_dir, palettes_dir ):
 ###############################################################################
 
 def mode( color ):
-    if color in colors:
+    if type(color) is int:
+        if 0 <= color and color <= 255 :
+            return 256
+        else:
+            raise UnknownColor(color)
+    elif color in colors:
         return 8
     elif color in colormaps.keys():
         if color[0].islower():
@@ -279,7 +301,7 @@ def mode( color ):
             return 256
     elif color[0] == "#":
         return 256
-    elif color.isdigit() and (ansi_min < int(color) and int(color) < ansi_max) :
+    elif color.isdigit() and (0 <= int(color) and int(color) <= 255) :
         return 256
     else:
         raise UnknownColor(color)
@@ -402,7 +424,7 @@ def color_map(name):
         color_code = str(30 + colors[color])
     else:
         color_nb = int(color)
-        assert( ansi_min <= color_nb <= ansi_max )
+        assert( 0 <= color_nb <= 255 )
         color_code = str(color_nb)
 
     colormap_idx = next_in_map(color)
@@ -477,9 +499,6 @@ def colorin(text, color="red", style="normal"):
     elif color.lower() == "random":
         color_code = color_random( color )
 
-    elif color in colormaps.keys():
-        color_code = color_in_colormaps( color )
-
     elif color.lower() == "scale": # "scale" or "Scale"
         color_code = color_scale( color, text )
 
@@ -491,6 +510,12 @@ def colorin(text, color="red", style="normal"):
     # thus you can change the "colormap" variable to your favorite one before calling colorin
     elif color == "colormap":
         color_code = color_map(color)
+
+    # Registered colormaps should be tested after special colors,
+    # because special tags are also registered as colormaps,
+    # but do not have the same simple behavior.
+    elif color in colormaps.keys():
+        color_code = color_in_colormaps( color )
 
     # 8 colors modes
     elif color in colors:
@@ -818,7 +843,7 @@ def __args_parse__(argv, usage=""):
     parser.add_argument("-P", "--palettes-dir", metavar="DIR", action="append",
             help="Search for additional palettes (*.gpl files) in the given directory")
 
-    parser.add_argument("-d", "--default", metavar="COLORMAP", default="spectrum",
+    parser.add_argument("-d", "--default", metavar="COLORMAP", default=None,
             help="When using special colormaps (`scale` or `hash`), use this COLORMAP. \
                 This can be either one of the available colormaps or a comma-separated list of colors. \
                 WARNING: be sure to specify a default colormap that is compatible with the special colormap's mode.")
@@ -982,22 +1007,22 @@ if __name__ == "__main__":
             logging.debug("user-defined scale: %f,%f" % scale)
 
         # Default color maps
-        if default_colormap not in colormaps:
-            cmap = default_colormap.split(",")
+        if default_colormap:
+            if default_colormap not in colormaps:
+                cmap = default_colormap.split(",")
 
-        elif default_colormap in colormaps:
-            cmap = colormaps[default_colormap]
+            elif default_colormap in colormaps:
+                cmap = colormaps[default_colormap]
 
-        colormaps[color] = cmap
-        logging.debug("used-defined default colormap: %s" % ",".join([str(i) for i in cmap]) )
-
+            set_special_colormaps( cmap )
+            logging.debug("user-defined special colormap: %s" % ",".join([str(i) for i in cmap]) )
 
         # explicit color map
         if as_colormap is True and color not in colormaps:
             colormaps["Default"] = color.split(",")  # replace the colormap by the given colors
             colormaps["default"] = color.split(",")  # replace the colormap by the given colors
             color = "colormap"  # use the keyword to switch to colormap instead of list of colors
-            logging.debug("used-defined colormap: %s" % ",".join(colormaps["Default"]) )
+            logging.debug("used-defined default colormap: %s" % ",".join(colormaps["Default"]) )
 
         # if theme
         if as_theme:

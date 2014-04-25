@@ -22,18 +22,19 @@ groups.
 
 Available colors are: blue, black, yellow, cyan, green, magenta, white, red,
 rainbow, random, Random, Spectrum, spectrum, scale, Scale, hash, Hash, none, an
-RGB hexadecimal triplet or any number between 0 and 255.
+RGB hexadecimal triplet (`#11aaff`, for example) or any number between 0 and 255.
 
 Available styles are: normal, bold, faint, italic, underline, blink,
 rapid\_blink, reverse, conceal or random (some styles may have no effect, depending
 on your terminal).
 
-`rainbow` will cycle over a 6 colors rainbow at each matching pattern.
-`Rainbow` will do the same over 24 colors (this requires a terminal that supports
-the 256 color escape sequences).
+`rainbow` will cycle over a the default colormap at each matching pattern.
+`Rainbow` will do the same over the default colormap for the 256-colors mode
+(this requires a terminal that supports the 256 color escape sequences).
 
-`Random` will color each matching pattern with a random color among the 255
-available in the ANSI table. `random` will do the same in 8 colors mode.
+`Random` will color each matching pattern with a random color among the default colormap
+(the 255 available in the ANSI table, by default).
+`random` will do the same in 8 colors mode.
 
 `spectrum` and `Spectrum` are like rainbows, but with more colors (8 and 36
 colors).
@@ -133,12 +134,11 @@ Gentoo
   Search for additional palettes (\*.gpl files) in this directory.
 
 * `-d COLORMAP`, `--default COLORMAP`:
-  When using special colormaps (`scale` or `hash`), use this COLORMAP instead of the `spectrum` one.
+  When using special colormaps (`random`, `scale` or `hash`), use this COLORMAP instead of the default one.
   This can be either one of the available colormaps or a comma-separated list of colors.
-  WARNING: be sure to specify a default colormap that is compatible with the special colormap's mode.
-  For instance, if you indicate `scale`, you can use `-d red,green,blue`, but `-d 12,13,14` will fail.
-  Also, if you specify `Scale`, you cannot use `-d red,green,blue`, but `-d Rainbow` will work.
-  Similarly, external palettes are converted from RGB to 256-ANSI and will thus not work if you use
+  WARNING: be sure to specify a default colormap that is compatible with the special colormap's mode,
+  or else the colors may not appear the same.
+  Also, external palettes are converted from RGB to 256-ANSI and will thus not work if you use
   them as default colormaps for a 8-colors mode special color.
 
 * `-r TYPE(S)`, `--resources TYPE(S)`:

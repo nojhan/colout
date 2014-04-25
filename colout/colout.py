@@ -329,7 +329,8 @@ def color_random( color ):
     global context
     m = mode(color)
     if m == 8:
-        color_code = random.choice(context["colormaps"]["random"])
+        color_name = random.choice(context["colormaps"]["random"])
+        color_code = context["colors"][color_name]
         color_code = str(30 + color_code)
 
     elif m == 256:
@@ -860,7 +861,7 @@ def __args_parse__(argv, usage=""):
             help="Search for additional palettes (*.gpl files) in the given directory")
 
     parser.add_argument("-d", "--default", metavar="COLORMAP", default=None,
-            help="When using special colormaps (`scale` or `hash`), use this COLORMAP. \
+            help="When using special colormaps (`random`, `scale` or `hash`), use this COLORMAP. \
                 This can be either one of the available colormaps or a comma-separated list of colors. \
                 WARNING: be sure to specify a default colormap that is compatible with the special colormap's mode.")
 

@@ -1,6 +1,6 @@
 
-def theme():
-    return [
+def theme(context):
+    return context,[
             # LaTeX
             ["This is .*TeX.*$", "white", "bold"],
             ["(LaTeX Warning): (.*) `(.*)' on page [0-9] (.*) on input line [0-9]+.$",

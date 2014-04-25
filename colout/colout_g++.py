@@ -3,7 +3,7 @@
 def default_gettext( msg ):
     return msg
 
-def theme():
+def theme(context):
     import os
     import gettext
     import locale
@@ -33,7 +33,7 @@ def theme():
         qo = "['`]"
         qc = "'"
 
-    return [
+    return context,[
         # Command line
         [ "[/\s]([cg]\+\+-*[0-9]*\.*[0-9]*)", "white", "bold" ],
         [ "\s(\-D)(\s*[^\s]+\s)", "none,green", "normal,bold" ],

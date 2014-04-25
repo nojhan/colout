@@ -1,8 +1,8 @@
 #encoding: utf-8
 
-def theme():
+def theme(context):
     style="monokai"
-    return [
+    return context,[
             [ "^(.*\.java):([0-9]+):\s*(warning:.*)$", "white,yellow,magenta", "normal,normal,bold" ],
             [ "^(.*\.java):([0-9]+):(.*)$", "white,yellow,red", "normal,normal,bold" ],
             [ "^(symbol|location)\s*:\s*(.*)$", "blue,Java", "bold,"+style ],

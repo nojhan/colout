@@ -1,6 +1,6 @@
 
-def theme():
-    return [
+def theme(context):
+    return context,[
             # traceback header
             ["^Traceback .*$", "blue" ],
             # File, line, in

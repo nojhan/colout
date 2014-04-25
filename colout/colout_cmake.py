@@ -1,5 +1,5 @@
 
-def theme():
+def theme(context):
     # CMake theme:
     #  actions performing in cyan
     performing="cyan"
@@ -8,7 +8,11 @@ def theme():
     #  actions taking an unknown time
     untimed="blue"
 
-    return [
+    # A palette that goes: purple, orange, white
+    percs = [45, 39, 33, 27, 21, 57, 63, 62, 98, 97, 133, 132, 138, 173, 172, 208, 214, 220, 226, 228, 229, 230, 231, 255]
+    context["colormaps"]["Scale"] = percs
+
+    return context,[
         # Configure...
         [ "^--.*works", performed ],
         [ "^--.*done", performed ],

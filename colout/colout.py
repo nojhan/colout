@@ -24,31 +24,30 @@ signal.signal( signal.SIGPIPE, signal.SIG_DFL )
 
 
 ###############################################################################
-# Global variables
+# Global variable(s)
 ###############################################################################
 
-# Escaped end markers for given color modes
-endmarks = {8: ";", 256: ";38;5;"}
+context = {}
 
 # Available styles
-styles = {
+context["styles"] = {
     "normal": 0, "bold": 1, "faint": 2, "italic": 3, "underline": 4,
     "blink": 5, "rapid_blink": 6,
     "reverse": 7, "conceal": 8
 }
 
 # Available color names in 8-colors mode
-colors = {
+context["colors"] = {
     "black": 0, "red": 1, "green": 2, "yellow": 3, "orange":3, "blue": 4,
     "magenta": 5, "purple": 5, "cyan": 6, "white": 7, "none": -1
 }
 
-themes = {}
+context["themes"] = {}
 
 # pre-defined colormaps
 # 8-colors mode should start with a lower-case letter (and can contains either named or indexed colors)
 # 256-colors mode should start with an upper-case letter (and should contains indexed colors)
-colormaps = {
+context["colormaps"] = {
     # Rainbows
     "rainbow" : ["magenta", "blue", "cyan", "green", "yellow", "red"],
     "Rainbow" : [92, 93, 57, 21, 27, 33, 39, 45, 51, 50, 49, 48, 47, 46, 82, 118, 154, 190, 226, 220, 214, 208, 202, 196],
@@ -58,16 +57,18 @@ colormaps = {
     "Spectrum" : [91, 92, 56, 57, 21, 27, 26, 32, 31, 37, 36, 35, 41, 40, 41, 77, 83, 84, 120, 121, 157, 194, 231, 254, 255, 231, 230, 229, 228, 227, 226, 220, 214, 208, 202, 196]
 } # colormaps
 
-colormaps["scale"] = colormaps["spectrum"]
-colormaps["Scale"] = colormaps["Spectrum"]
-colormaps["hash"] = colormaps["rainbow"]
-colormaps["Hash"] = colormaps["Rainbow"]
-colormaps["default"] = colormaps["spectrum"]
-colormaps["Default"] = colormaps["Spectrum"]
+context["colormaps"]["scale"] = context["colormaps"]["spectrum"]
+context["colormaps"]["Scale"] = context["colormaps"]["Spectrum"]
+context["colormaps"]["hash"] = context["colormaps"]["rainbow"]
+context["colormaps"]["Hash"] = context["colormaps"]["Rainbow"]
+context["colormaps"]["default"] = context["colormaps"]["spectrum"]
+context["colormaps"]["Default"] = context["colormaps"]["Spectrum"]
 
-colormap_idx = 0
+context["colormap_idx"] = 0
 
-scale = (0,100)
+context["scale"] = (0,100)
+
+context["lexers"] = []
 
 class UnknownColor(Exception):
     pass
@@ -86,12 +87,14 @@ class DuplicatedTheme(Exception):
 
 def set_special_colormaps( cmap ):
     """Change all the special colors to a single colormap (which must be a list of colors)."""
-    colormaps["scale"]   = cmap
-    colormaps["Scale"]   = cmap
-    colormaps["hash"]    = cmap
-    colormaps["Hash"]    = cmap
-    colormaps["default"] = cmap
-    colormaps["Default"] = cmap
+    global context
+    context["colormaps"]["scale"]   = cmap
+    context["colormaps"]["Scale"]   = cmap
+    context["colormaps"]["hash"]    = cmap
+    context["colormaps"]["Hash"]    = cmap
+    context["colormaps"]["default"] = cmap
+    context["colormaps"]["Default"] = cmap
+    logging.debug("user-defined special colormap: %s" % ",".join([str(i) for i in cmap]) )
 
 
 def parse_gimp_palette( filename ):
@@ -199,7 +202,7 @@ def hex_to_rgb(h):
 ###############################################################################
 
 def load_themes( themes_dir):
-    global themes
+    global context
     logging.debug("search for themes in: %s" % themes_dir)
     os.chdir( themes_dir )
 
@@ -207,14 +210,14 @@ def load_themes( themes_dir):
     for f in glob.iglob("colout_*.py"):
         module = ".".join(f.split(".")[:-1]) # remove extension
         name = "_".join(module.split("_")[1:]) # remove the prefix
-        if name in themes:
+        if name in context["themes"]:
             raise DuplicatedTheme(name)
         logging.debug("load theme %s" % name)
-        themes[name] = importlib.import_module(module)
+        context["themes"][name] = importlib.import_module(module)
 
 
 def load_palettes( palettes_dir, ignore_duplicates = True ):
-    global colormaps
+    global context
     logging.debug("search for palettes in: %s" % palettes_dir)
     os.chdir( palettes_dir )
 
@@ -225,7 +228,7 @@ def load_palettes( palettes_dir, ignore_duplicates = True ):
         except Exception as e:
             logging.warning("error while parsing palette %s: %s" % ( p,e ) )
             continue
-        if name in colormaps:
+        if name in context["colormaps"]:
             if ignore_duplicates:
                 logging.warning("ignore this duplicated palette name: %s" % name)
             else:
@@ -235,11 +238,11 @@ def load_palettes( palettes_dir, ignore_duplicates = True ):
         # Compress it so that there isn't two consecutive identical colors
         compressed = uniq(ansi_palette)
         logging.debug("load %i ANSI colors in palette %s: %s" % (len(compressed), name, compressed))
-        colormaps[name] = compressed
+        context["colormaps"][name] = compressed
 
 
 def load_lexers():
-    global lexers
+    global context
     # load available pygments lexers
     lexers = []
     try:
@@ -270,6 +273,8 @@ def load_lexers():
                 logging.debug("loaded lexer %s" % lexer[1][0])
         lexers.sort()
 
+    context["lexers"] = lexers
+
 
 def load_resources( themes_dir, palettes_dir ):
     load_themes( themes_dir )
@@ -282,19 +287,20 @@ def load_resources( themes_dir, palettes_dir ):
 ###############################################################################
 
 def mode( color ):
+    global context
     if type(color) is int:
         if 0 <= color and color <= 255 :
             return 256
         else:
             raise UnknownColor(color)
-    elif color in colors:
+    elif color in context["colors"]:
         return 8
-    elif color in colormaps.keys():
+    elif color in context["colormaps"].keys():
         if color[0].islower():
             return 8
         elif color[0].isupper():
             return 256
-    elif color.lower() in ("scale","hash","random") or color.lower() in lexers:
+    elif color.lower() in ("scale","hash","random") or color.lower() in context["lexers"]:
         if color[0].islower():
             return 8
         elif color[0].isupper():
@@ -308,15 +314,15 @@ def mode( color ):
 
 
 def next_in_map( color ):
-    global colormap_idx
+    global context
     # loop over indices in colormap
-    return (colormap_idx+1) % len(colormaps[color])
+    return (context["colormap_idx"]+1) % len(context["colormaps"][color])
 
 
 def color_random( color ):
     m = mode(color)
     if m == 8:
-        color_code = random.choice(list(colors.values()))
+        color_code = random.choice(list(context["colors"].values()))
         color_code = str(30 + color_code)
 
     elif m == 256:
@@ -327,20 +333,20 @@ def color_random( color ):
 
 
 def color_in_colormaps( color ):
-    global colormap_idx
+    global context
     m = mode(color)
     if m == 8:
-        c = colormaps[color][colormap_idx]
+        c = context["colormaps"][color][context["colormap_idx"]]
         if c.isdigit():
             color_code = str(30 + c)
         else:
-            color_code = str(30 + colors[c])
+            color_code = str(30 + context["colors"][c])
 
     else:
-        color_nb = colormaps[color][colormap_idx]
+        color_nb = context["colormaps"][color][context["colormap_idx"]]
         color_code = str( color_nb )
 
-    colormap_idx = next_in_map(color)
+    context["colormap_idx"] = next_in_map(color)
 
     return color_code
 
@@ -372,19 +378,19 @@ def color_scale( name, text ):
             f = eval(nb)
 
     # if out of scale, do not color
-    if f < scale[0] or f > scale[1]:
+    if f < context["scale"][0] or f > context["scale"][1]:
         return None
 
     # normalize and scale over the nb of colors in cmap
-    colormap = colormaps[name]
-    i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(colormap)-1) ) )
+    colormap = context["colormaps"][name]
+    i = int( math.ceil( (f - context["scale"][0]) / (context["scale"][1]-context["scale"][0]) * (len(colormap)-1) ) )
     color = colormap[i]
 
     # infer mode from the color in the colormap
     m = mode(color)
 
     if m == 8:
-        color_code = str(30 + colors[color])
+        color_code = str(30 + context["colors"][color])
     else:
         color_code = str(color)
 
@@ -399,15 +405,15 @@ def color_hash( name, text ):
     f = float(functools.reduce(lambda x, y: x+ord(y), hash, 0) % 101)
 
     # normalize and scale over the nb of colors in cmap
-    colormap = colormaps[name]
-    i = int( math.ceil( (f - scale[0]) / (scale[1]-scale[0]) * (len(colormap)-1) ) )
+    colormap = context["colormaps"][name]
+    i = int( math.ceil( (f - context["scale"][0]) / (context["scale"][1]-context["scale"][0]) * (len(colormap)-1) ) )
     color = colormap[i]
 
     # infer mode from the color in the colormap
     m = mode(color)
 
     if m == 8:
-        color_code = str(30 + colors[color])
+        color_code = str(30 + context["colors"][color])
     else:
         color_code = str(color)
 
@@ -415,19 +421,19 @@ def color_hash( name, text ):
 
 
 def color_map(name):
-    global colormap_idx
+    global context
     # current color
-    color = colormaps[name][colormap_idx]
+    color = context["colormaps"][name][context["colormap_idx"]]
 
     m = mode(color)
     if m == 8:
-        color_code = str(30 + colors[color])
+        color_code = str(30 + context["colors"][color])
     else:
         color_nb = int(color)
         assert( 0 <= color_nb <= 255 )
         color_code = str(color_nb)
 
-    colormap_idx = next_in_map(color)
+    context["colormap_idx"] = next_in_map(color)
 
     return color_code
 
@@ -476,15 +482,18 @@ def colorin(text, color="red", style="normal"):
     start = "\033["
     stop = "\033[0m"
 
+    # Escaped end markers for given color modes
+    endmarks = {8: ";", 256: ";38;5;"}
+
     color_code = ""
     style_code = ""
 
     # Convert the style code
     if style == "random" or style == "Random":
-        style = random.choice(list(styles.keys()))
+        style = random.choice(list(context["styles"].keys()))
     else:
-        if style in styles:
-            style_code = str(styles[style])
+        if style in context["styles"]:
+            style_code = str(context["styles"][style])
 
     color = color.strip()
     m = mode(color)
@@ -514,12 +523,12 @@ def colorin(text, color="red", style="normal"):
     # Registered colormaps should be tested after special colors,
     # because special tags are also registered as colormaps,
     # but do not have the same simple behavior.
-    elif color in colormaps.keys():
+    elif color in context["colormaps"].keys():
         color_code = color_in_colormaps( color )
 
     # 8 colors modes
-    elif color in colors:
-        color_code = str(30 + colors[color])
+    elif color in context["colors"]:
+        color_code = str(30 + context["colors"][color])
 
     # hexadecimal color
     elif color[0] == "#":
@@ -594,7 +603,7 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False):
     >>> colorup("Faites Chier la Vache", "([A-Z])(\S+)\s", "blue", "bold,italic")
     '\x1b[1;34mF\x1b[0m\x1b[3;34maites\x1b[0m \x1b[1;34mC\x1b[0m\x1b[3;34mhier\x1b[0m la Vache'
     """
-    global colormap_idx
+    global context
 
     if not debug:
         regex = re.compile(pattern)
@@ -628,7 +637,7 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False):
             # If we want to iterate colormaps on groups instead of patterns
             if on_groups:
                 # Reset the counter at the beginning of each match
-                colormap_idx = 0
+                context["colormap_idx"] = 0
 
             # For each group index.
             # Note that match.groups returns a tuple (thus being indexed in [0,n[),
@@ -748,8 +757,8 @@ def __args_dirty__(argv, usage=""):
        or argv[1] == "-h":
         print(usage+"\n")
         print("Usage:", argv[0], "<pattern> <color(s)> [<style(s)>] [<print on stderr?>] [<iterate over groups?>]")
-        print("\tAvailable colors:", " ".join(colors))
-        print("\tAvailable styles:", " ".join(styles))
+        print("\tAvailable colors:", " ".join(context["colors"]))
+        print("\tAvailable styles:", " ".join(context["styles"]))
         print("Example:", argv[0], "'^(def)\s+(\w*).*$' blue,magenta italic,bold < colout.py")
         sys.exit(1)
 
@@ -969,23 +978,23 @@ if __name__ == "__main__":
         # print("Available resources:")
         for res in asked:
             if "style" in res or "all" in res:
-                print("STYLES: %s" % join_sort(styles) )
+                print("STYLES: %s" % join_sort(context["styles"]) )
 
             if "color" in res or "all" in res:
-                print("COLORS: %s" % join_sort(colors) )
+                print("COLORS: %s" % join_sort(context["colors"]) )
 
             if "special" in res or "all" in res:
                 print("SPECIAL: %s" % join_sort(["random", "Random", "scale", "Scale", "hash", "Hash", "colormap"]) )
 
             if "theme" in res or "all" in res:
                 if len(themes) > 0:
-                    print("THEMES: %s" % join_sort(themes.keys()) )
+                    print("THEMES: %s" % join_sort(context["themes"].keys()) )
                 else:
                     print("NO THEME")
 
             if "colormap" in res or "all" in res:
-                if len(colormaps) > 0:
-                    print("COLORMAPS: %s" % join_sort(colormaps) )
+                if len(context["colormaps"]) > 0:
+                    print("COLORMAPS: %s" % join_sort(context["colormaps"]) )
                 else:
                     print("NO COLORMAPS")
 
@@ -1003,32 +1012,32 @@ if __name__ == "__main__":
 
     try:
         if myscale:
-            scale = tuple([float(i) for i in myscale.split(",")])
-            logging.debug("user-defined scale: %f,%f" % scale)
+            context["scale"] = tuple([float(i) for i in myscale.split(",")])
+            logging.debug("user-defined scale: %f,%f" % context["scale"])
 
         # Default color maps
         if default_colormap:
-            if default_colormap not in colormaps:
+            if default_colormap not in context["colormaps"]:
                 cmap = default_colormap.split(",")
 
-            elif default_colormap in colormaps:
-                cmap = colormaps[default_colormap]
+            elif default_colormap in context["colormaps"]:
+                cmap = context["colormaps"][default_colormap]
 
             set_special_colormaps( cmap )
-            logging.debug("user-defined special colormap: %s" % ",".join([str(i) for i in cmap]) )
 
         # explicit color map
-        if as_colormap is True and color not in colormaps:
-            colormaps["Default"] = color.split(",")  # replace the colormap by the given colors
-            colormaps["default"] = color.split(",")  # replace the colormap by the given colors
+        if as_colormap is True and color not in context["colormaps"]:
+            context["colormaps"]["Default"] = color.split(",")  # replace the colormap by the given colors
+            context["colormaps"]["default"] = color.split(",")  # replace the colormap by the given colors
             color = "colormap"  # use the keyword to switch to colormap instead of list of colors
-            logging.debug("used-defined default colormap: %s" % ",".join(colormaps["Default"]) )
+            logging.debug("used-defined default colormap: %s" % ",".join(context["colormaps"]["Default"]) )
 
         # if theme
         if as_theme:
             logging.debug( "asked for theme: %s" % pattern )
-            assert(pattern in themes.keys())
-            write_all( as_all, sys.stdin, sys.stdout, colortheme, themes[pattern].theme() )
+            assert(pattern in context["themes"].keys())
+            context,theme = context["themes"][pattern].theme(context)
+            write_all( as_all, sys.stdin, sys.stdout, colortheme, theme )
 
         # if pygments
         elif as_source:
@@ -1055,6 +1064,11 @@ if __name__ == "__main__":
             write_all( as_all, sys.stdin, sys.stdout, colorup, pattern, color, style, on_groups )
 
     except UnknownColor as e:
+        if debug:
+            import traceback
+            for var in context:
+                print(var,context[var])
+            print(traceback.format_exc())
         logging.error("unknown color: %s" % e )
         sys.exit( error_codes["UnknownColor"] )
 

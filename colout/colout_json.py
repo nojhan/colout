@@ -1,8 +1,8 @@
 
-def theme():
+def theme(context):
     # This theme expect a formatted JSON input, with items spread across lines.
     # See tools like "python -m json.tool" or "json_xs"
-    return [
+    return context,[
         [ '[\[\]{}],*\s*\n' ],
         [ '" (:) ', "yellow" ],
         [ '[\]}"](,)', "yellow" ],

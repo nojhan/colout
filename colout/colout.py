@@ -52,9 +52,13 @@ context["colormaps"] = {
     "rainbow" : ["magenta", "blue", "cyan", "green", "yellow", "red"],
     "Rainbow" : [92, 93, 57, 21, 27, 33, 39, 45, 51, 50, 49, 48, 47, 46, 82, 118, 154, 190, 226, 220, 214, 208, 202, 196],
 
-    # from magenta to red, with white in the middle
+    # From magenta to red, with white in the middle
     "spectrum" : ["magenta", "blue", "cyan", "white", "green", "yellow", "red"],
-    "Spectrum" : [91, 92, 56, 57, 21, 27, 26, 32, 31, 37, 36, 35, 41, 40, 41, 77, 83, 84, 120, 121, 157, 194, 231, 254, 255, 231, 230, 229, 228, 227, 226, 220, 214, 208, 202, 196]
+    "Spectrum" : [91, 92, 56, 57, 21, 27, 26, 32, 31, 37, 36, 35, 41, 40, 41, 77, 83, 84, 120, 121, 157, 194, 231, 254, 255, 231, 230, 229, 228, 227, 226, 220, 214, 208, 202, 196],
+
+    # All the colors are available for the default `random` special
+    "random" : context["colors"],
+    "Random" : list(range(256))
 } # colormaps
 
 context["colormaps"]["scale"] = context["colormaps"]["spectrum"]
@@ -94,6 +98,8 @@ def set_special_colormaps( cmap ):
     context["colormaps"]["Hash"]    = cmap
     context["colormaps"]["default"] = cmap
     context["colormaps"]["Default"] = cmap
+    context["colormaps"]["random"] = cmap
+    context["colormaps"]["Random"] = cmap
     logging.debug("user-defined special colormap: %s" % ",".join([str(i) for i in cmap]) )
 
 
@@ -320,13 +326,14 @@ def next_in_map( color ):
 
 
 def color_random( color ):
+    global context
     m = mode(color)
     if m == 8:
-        color_code = random.choice(list(context["colors"].values()))
+        color_code = random.choice(context["colormaps"]["random"])
         color_code = str(30 + color_code)
 
     elif m == 256:
-        color_nb = random.randint(0, 255)
+        color_nb = random.choice(context["colormaps"]["Random"])
         color_code = str(color_nb)
 
     return color_code

@@ -551,7 +551,7 @@ def colorin(text, color="red", style="normal"):
         color_code = str(color_nb)
 
     # programming language
-    elif color.lower() in lexers:
+    elif color.lower() in context["lexers"]:
         # bypass color encoding and return text colored by the lexer
         return color_lexer(color,style,text)
 

@@ -266,3 +266,22 @@ cmake and g++ themes:
 You then can use the `cm` alias as a prefix to your build command,
 for example: `cm make test`
 
+
+### Themes
+
+You can easily add your own theme to colout.
+A theme is basically a module with a function named `theme` that take the configuration context as an argument and
+return back the (modified) context and a list of triplets.
+Each triplet figures the same arguments than those of the command line interface.
+
+    def theme(context):
+        return context,[ [regexp, colors, styles] ]
+
+With the context dictionary at hand, you have access to the internal configuration of colout, you can thus change colormaps for
+special keywords, the scale, even the available colors, styles or themes.
+
+See the cmake theme for how to modify an existing colormap if (and only if) the user didn't ask for an
+alternative one.
+See the ninja theme for how to extend an existing theme with more regexps and a different configuration. 
+See the gcc theme for an example of how to use the localization of existing softwares to build translated regexp.
+

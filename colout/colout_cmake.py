@@ -8,9 +8,11 @@ def theme(context):
     #  actions taking an unknown time
     untimed="blue"
 
-    # A palette that goes: purple, orange, white
-    percs = [45, 39, 33, 27, 21, 57, 63, 62, 98, 97, 133, 132, 138, 173, 172, 208, 214, 220, 226, 228, 229, 230, 231, 255]
-    context["colormaps"]["Scale"] = percs
+    # If the user do not ask for his own colormap
+    if not context["user_defined_colormaps"]:
+        # A palette that goes: purple, orange, white
+        percs = [45, 39, 33, 27, 21, 57, 63, 62, 98, 97, 133, 132, 138, 173, 172, 208, 214, 220, 226, 228, 229, 230, 231, 255]
+        context["colormaps"]["Scale"] = percs
 
     return context,[
         # Configure...
@@ -31,9 +33,6 @@ def theme(context):
         # Link (make)
         [ "^(Linking .* )(library|executable) (.*/)*(.+(\.[aso]+)*)$",
           untimed, "normal,normal,bold" ],
-        # Link (ninja)
-        [ "^\[[0-9/]+\]\s?(Linking .* )(library|executable) (.*/)*(.+(\.[aso]+)*)$",
-          untimed, "normal,normal,bold" ],
         # [percent] Built
         [ "^\[\s*[0-9/]+%?\]\s(Built target)(\s.*)$",
           performed, "normal,bold" ],
@@ -47,7 +46,5 @@ def theme(context):
         [ "make\[[0-9]+\].*", "yellow"],
         [ "(make: \*\*\* \[.+\] )(.* [0-9]+)", "red", "normal,bold"],
         # progress percentage (make)
-        [ "^(\[\s*[0-9]+%\])","Scale" ],
-        # progress percentage (ninja)
-        [ "^(\[[0-9]+/[0-9]+\])","Scale" ]
+        [ "^(\[\s*[0-9]+%\])","Scale" ]
     ]

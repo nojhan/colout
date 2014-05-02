@@ -68,6 +68,8 @@ context["colormaps"]["Hash"] = context["colormaps"]["Rainbow"]
 context["colormaps"]["default"] = context["colormaps"]["spectrum"]
 context["colormaps"]["Default"] = context["colormaps"]["Spectrum"]
 
+context["user_defined_colormaps"] = False
+
 context["colormap_idx"] = 0
 
 context["scale"] = (0,100)
@@ -100,6 +102,7 @@ def set_special_colormaps( cmap ):
     context["colormaps"]["Default"] = cmap
     context["colormaps"]["random"] = cmap
     context["colormaps"]["Random"] = cmap
+    context["user_defined_colormaps"] = True
     logging.debug("user-defined special colormap: %s" % ",".join([str(i) for i in cmap]) )
 
 

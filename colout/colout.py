@@ -28,6 +28,7 @@ signal.signal( signal.SIGPIPE, signal.SIG_DFL )
 ###############################################################################
 
 context = {}
+debug = False
 
 # Available styles
 context["styles"] = {
@@ -615,6 +616,7 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False):
     '\x1b[1;34mF\x1b[0m\x1b[3;34maites\x1b[0m \x1b[1;34mC\x1b[0m\x1b[3;34mhier\x1b[0m la Vache'
     """
     global context
+    global debug
 
     if not debug:
         regex = re.compile(pattern)
@@ -906,7 +908,6 @@ def write_all( as_all, stream_in, stream_out, function, *args ):
 
 if __name__ == "__main__":
 
-    global debug
     error_codes = {"UnknownColor":1, "DuplicatedPalette":2}
 
     usage = "A regular expression based formatter that color up an arbitrary text stream."

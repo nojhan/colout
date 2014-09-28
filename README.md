@@ -118,7 +118,8 @@ Gentoo
 
 * `-l min,max`, `--scale min,max`:
   When using the 'scale' colormap, parse matches as decimal numbers (taking your locale into account)
-  and apply the rainbow colormap linearly between the given min,max (0,100, by default).
+  or as arithmetic expression (like "1+2/0.9\*3") and apply the rainbow colormap linearly
+  between the given min,max (0,100, by default).
 
 * `-a`, `--all`:
   Color the whole input at once instead of line per line

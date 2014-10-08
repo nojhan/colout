@@ -998,7 +998,7 @@ if __name__ == "__main__":
                 print("SPECIAL: %s" % join_sort(["random", "Random", "scale", "Scale", "hash", "Hash", "colormap"]) )
 
             if "theme" in res or "all" in res:
-                if len(themes) > 0:
+                if len(context["themes"]) > 0:
                     print("THEMES: %s" % join_sort(context["themes"].keys()) )
                 else:
                     print("NO THEME")
@@ -1010,8 +1010,8 @@ if __name__ == "__main__":
                     print("NO COLORMAPS")
 
             if "lexer" in res or "all" in res:
-                if len(lexers) > 0:
-                    print("SYNTAX COLORING: %s" % join_sort(lexers) )
+                if len(context["lexers"]) > 0:
+                    print("SYNTAX COLORING: %s" % join_sort(context["lexers"]) )
                 else:
                     print("NO SYNTAX COLORING (check that python3-pygments is installed)")
 

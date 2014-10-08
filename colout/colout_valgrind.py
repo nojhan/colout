@@ -4,11 +4,18 @@ def theme(context):
 
     return context, [
             # section title
+            ["^(==[0-9]+==\s{1})(Memcheck|Copyright|Using)(.*)$","blue",""],
+            ["^(==[0-9]+==\s{1}Command: )(\S*)(.*)$","green,white","normal,bold,normal"],
+            ["^(==[0-9]+==\s{1})(HEAP SUMMARY:)(.*)$","green",""],
+            ["^(==[0-9]+==\s{1})(All heap blocks were freed)(.*)$","green",""],
+            ["^(==[0-9]+==\s{1})(For counts of detected and suppressed errors, rerun with: -v)(.*)$","blue",""],
             ["^(==[0-9]+==\s{1}\S+.*)$","red",""],
             # section explanation
             ["^==[0-9]+==\s{2}(\S+.*)$","orange",""],
             # locations adresses
-            ["^==[0-9]+==\s{4}([atby]{2}) (0x)([^:]*): (\S+) ",
+            ["^==[0-9]+==\s{4}([atby]{2}) (0x0): (\?{3})",
+                "blue,yellow,red", "normal,normal,bold"],
+            ["^==[0-9]+==\s{4}([atby]{2}) (0x)([^:]*:) (\S+)",
                 "blue,blue,blue,none", "normal"],
             # locations: library
             ["\(in (.*)\)", "cyan", "normal"],

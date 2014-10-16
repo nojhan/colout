@@ -38,7 +38,8 @@
           <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
         </div>
 
-        <h1>colout</h1>
+
+<h1>colout</h1>
 
 <h2>Introduction</h2>
 
@@ -52,6 +53,7 @@ Patterns are regular expressions.</p>
 
 <p>You can think of colout as an alternative to <code>grep --color</code> which will preserve the surrounding context, whith more
 powerful coloring capabilites.</p>
+
 
 <h2>Useful examples</h2>
 
@@ -77,6 +79,7 @@ particularly useful when examining logs.</p>
 
 <p><img src="ps_grep_firefox_user_blue.png" alt=""></p>
 
+
 <h3>Multiple colors</h3>
 
 <p>Using groups in the regular expressions, you can highlight several matchs in different colors.</p>
@@ -87,13 +90,28 @@ but <code>r-x</code> for others:</p>
 
 <p><img src="ll_perms_groups_4_colors.png" alt=""></p>
 
-<p>Using colormaps, you can change the colors for each lines, this is particularly useful for reading logs that have long
-lines that are wrapped.
+
+<h3>Color maps</h3>
+
+<p>Using colormaps, you can change the colors for each lines</p>
+
+<p>Predefined colormaps are particularly useful for reading logs that have long
+lines that are wrapped.</p>
 <p><code>tail /var/log/kern.log | colout "^.*$" rainbow</code></p>
 
 <p><img src="kern_log_rainbow.png" alt=""></p>
 
-<p>If you want more colors, you can highlight each line of your log with a random one among the 256 ANSI colors:</p>
+<p>But you can also create your own colormap, using the <code>-c</code> switch, for example to alternate two colors:</p>
+<p><code>tail /var/log/kern.log | colout -c "^.*$" blue,yellow normal </code></p>
+
+<p><img src="kern_log_yb.png" alt=""></p>
+
+<p>If you prefer a rainbow with more colors, just use an upper-case R. For example to color a progress bar:</p>
+<p><code>echo "Progress [########################] 100%" | colout "#" Rainbow</code><p>
+
+<p><img src="progress_Rainbow.png" alt=""></p>
+
+<p>If you want even more colors, you can highlight each line of your log with a random one among the 256 ANSI colors:</p>
 <p><code>tail /var/log/dmesg | colout "^.*$" Random</code></p>
 
 <p><img src="dmesg_Random.png" alt=""></p>
@@ -107,6 +125,17 @@ lines that are wrapped.
 <p><code>cat /dev/urandom | colout "." Random</code></p>
 
 <p><img src="urandom_character.png" alt=""></p>
+
+
+<h3>Palettes</h3>
+
+<p>You can load extern palettes as colormaps. colout supports the GIMP Palette format (*.gpl, used by GIMP and inkscape,
+for instance) and will translate them from their RGB values to their nearest ANSI colors (which may thus contains
+fewer colors than the orginal RGB palette).</p>
+
+<p><code>sudo apt-get update | colout -P /usr/share/gimp/2.0/palettes/ "^.*$" Firecode</code></p>
+<p><img src="apt_update_palette_firecode.png" alt=""></p>
+
 
 <h3>Source code</h3>
 
@@ -125,6 +154,7 @@ for spotting code in a log.</p>
 
 <p><img src="make_Cpp_vim.png" alt=""></p>
 
+
 <h3>Themes</h3>
 
 <p>colout comes with a set of handy shortcuts for coloring common outputs.</p>
@@ -140,11 +170,12 @@ following shortcut:
 
 <p><img src="themes_cmake_g++_paradiseo.png" alt=""></p>
 
+
 <h2>Tips</h2>
 
 <p>To be able to use the syntax highlighting, you should install the <code>python-pygments</code> library.</p>
 
-<p><code>colout -h</code> will give you the lists of available colors, themes and programming languages.</p>
+<p><code>colout -r</code> will give you the lists of available colors, colormaps, themes and supported programming languages.</p>
 
 <p>Colormaps and source code syntax highlighting most often comes in 8 or 256 colors mode. Use a lower case first letter
 for the 8 colors mode and an upper case first one for the 256 colors.</p>
@@ -153,15 +184,17 @@ for the 8 colors mode and an upper case first one for the 256 colors.</p>
 should use 256 colors mode, and thus upper case the first letter of the language name, or else the style is ignored.</p>
 
 <p>You can leave simple words without quotes, but it is better to put the regexp in quotes to avoid escaping special
-characters that would overwise be interpreted
-by your shell (like parenthesis).</p>
+characters that would overwise be interpreted by your shell (like parenthesis).</p>
 
 <p>Do not hesitate to design your own theme, they are defined as separated files, and basically are just like chaining
 several calls to colout in pipes, with the possibility to use python code around.</p>
+
+<p>Don't use nested groups or colout will duplicate the corresponding input text with each matching colors.</p>
+
       </section>
 
     </div>
     <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-    
+
   </body>
 </html>

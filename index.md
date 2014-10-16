@@ -95,10 +95,21 @@ following shortcut:
 
 ![](cmake_theme_paradiseo.png)
 
+You can colorize almost any text stream to make it more readable, see this comparison of the output of Valgrind:
+
+![](valgrind_colout.png)
+
 You can, of course, combine several calls to colout using pipes:
 `make 2>&1 | colout -t cmake | colout -t g++`
 
 ![](themes_cmake_g++_paradiseo.png)
+
+As colout is a KISS tool, you can even use it in hacks involving the shell,
+like colorizing the output of GDB commands:
+
+![](gdb_colout.png)
+
+Try the `example.gdbinit` shipped with colout (copy/link it as `~/.gdbinit`).
 
 
 ## Tips

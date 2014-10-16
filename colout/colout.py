@@ -1053,7 +1053,7 @@ if __name__ == "__main__":
         # if pygments
         elif as_source:
             logging.debug("asked for lexer: %s" % pattern.lower())
-            assert(pattern.lower() in lexers)
+            assert(pattern.lower() in context["lexers"])
             lexer = get_lexer_by_name(pattern.lower())
             # Python => 256 colors, python => 8 colors
             ask_256 = pattern[0].isupper()

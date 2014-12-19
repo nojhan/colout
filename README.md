@@ -10,7 +10,7 @@ colout(1) -- Color Up Arbitrary Command Output
 ## DESCRIPTION
 
 `colout` read lines of text stream on the standard input and output characters
-matching a given regular expression *PATTERN* in given <COLOR> and *STYLE*.
+matching a given regular expression *PATTERN* in given *COLOR* and *STYLE*.
 
 If groups are specified in the regular expression pattern, only them are taken
 into account, else the whole matching pattern is colored.

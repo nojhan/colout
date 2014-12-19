@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #encoding: utf-8
 
-# Color Up Arbitrary Command Ouput
+# Color Up Arbitrary Command Output
 # Licensed under the GPL version 3
 # 2012 (c) nojhan <nojhan@nojhan.net>
 

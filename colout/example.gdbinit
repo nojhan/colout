@@ -40,8 +40,17 @@ define hookpost-break
 end
 
 
+define hook-run
+    shell cat /tmp/coloutPipe | colout "^(Breakpoint) ([0-9]+),*\s+(0x\S+ )*(in )*(\S+) (\(.*\)) at (.*/)?(?:$|(.+?)(?:(\.[^.]*)|)):([0-9]+)" red,red,blue,none,green,cpp,none,white,white,yellow normal,bold,normal,normal,bold,normal,normal,bold,bold,bold | colout "^(Starting program): (.*/)?(?:$|(.+?)(?:(\.[^.]*)|)):([0-9]+)" green,none,white,white,yellow normal,normal,bold,bold,bold | colout "^[0-9]+\s+(.*)$" Cpp  &
+    logging_on
+end
+define hookpost-run
+    logging_off
+end
+
+
 define hook-continue
-    shell cat /tmp/coloutPipe | colout "^Program received signal.*$" | colout "^(Breakpoint) ([0-9]+),*\s+(0x\S+ )*(in )*(\S+) (\(.*\)) at (.*/)?(?:$|(.+?)(?:(\.[^.]*)|)):([0-9]+)" red,red,blue,none,green,cpp,none,white,white,yellow normal,bold,normal,normal,bold,normal,normal,bold,bold,bold | colout "^[0-9]+\s+(.*)$" Cpp &
+    shell cat /tmp/coloutPipe | colout "^(Program received signal )(.*)(,.*)$" yellow,red,yellow bold | colout "^(Breakpoint) ([0-9]+),*\s+(0x\S+ )*(in )*(\S+) (\(.*\)) at (.*/)?(?:$|(.+?)(?:(\.[^.]*)|)):([0-9]+)" red,red,blue,none,green,cpp,none,white,white,yellow normal,bold,normal,normal,bold,normal,normal,bold,bold,bold | colout "^[0-9]+\s+(.*)$" Cpp &
     logging_on
 end
 define hookpost-continue
@@ -75,6 +84,15 @@ define info hook-breakpoints
     logging_on
 end
 define info hookpost-breakpoints
+    logging_off
+end
+
+
+define info hook-line
+    shell cat /tmp/coloutPipe | colout "^Line ([0-9]+) of \"(.*/)?(?:$|(.+?)(?:(\.[^.]*)|))\"" yellow,none,white,white bold | colout "(0x\S+) <(\S+)\+([0-9]+)>" blue,green,blue normal &
+    logging_on
+end
+define info hookpost-line
     logging_off
 end
 

@@ -28,6 +28,7 @@ signal.signal( signal.SIGPIPE, signal.SIG_DFL )
 ###############################################################################
 
 context = {}
+debug = False
 
 # Available styles
 context["styles"] = {
@@ -375,26 +376,33 @@ def color_scale( name, text ):
     # if not, use python itself,
     # if thoses fails, try to `eval` the string
     # (this allow strings like "1/2+0.9*2")
+    f = None
     try:
         # babel is a specialized module
         import babel.numbers as bn
         try:
             f = float(bn.parse_decimal(nb))
-        except NumberFormatError:
-            f = eval(nb) # Note: in python2, `eval(2/3)` would produce `0`, in python3 `0.666`
+        except bn.NumberFormatError:
+            pass
     except ImportError:
         try:
             f = float(nb)
         except ValueError:
-            f = eval(nb)
+            pass
+    if f is not None:
+        # normalize with scale if it's a number
+        f = (f - context["scale"][0]) / (context["scale"][1]-context["scale"][0])
+    else:
+        # interpret as float between 0 and 1 otherwise
+        f = eval(nb)
 
     # if out of scale, do not color
-    if f < context["scale"][0] or f > context["scale"][1]:
+    if f < 0 or f > 1:
         return None
 
     # normalize and scale over the nb of colors in cmap
     colormap = context["colormaps"][name]
-    i = int( math.ceil( (f - context["scale"][0]) / (context["scale"][1]-context["scale"][0]) * len(colormap) ) ) - 1
+    i = int( math.ceil( f * (len(colormap)-1) ) )
     color = colormap[i]
 
     # infer mode from the color in the colormap
@@ -615,6 +623,7 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False):
     '\x1b[1;34mF\x1b[0m\x1b[3;34maites\x1b[0m \x1b[1;34mC\x1b[0m\x1b[3;34mhier\x1b[0m la Vache'
     """
     global context
+    global debug
 
     if not debug:
         regex = re.compile(pattern)
@@ -906,7 +915,6 @@ def write_all( as_all, stream_in, stream_out, function, *args ):
 
 if __name__ == "__main__":
 
-    global debug
     error_codes = {"UnknownColor":1, "DuplicatedPalette":2}
 
     usage = "A regular expression based formatter that color up an arbitrary text stream."

@@ -215,6 +215,7 @@ def load_themes( themes_dir):
     global context
     logging.debug("search for themes in: %s" % themes_dir)
     os.chdir( themes_dir )
+    sys.path.append( themes_dir )
 
     # load available themes
     for f in glob.iglob("colout_*.py"):

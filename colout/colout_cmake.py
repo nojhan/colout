@@ -33,12 +33,15 @@ def theme(context):
         # Link (make)
         [ "^(Linking .* )(library|executable) (.*/)*(.+(\.[aso]+)*)$",
           untimed, "normal,normal,bold" ],
+        # [percent] Creating something
+        [ "^\[\s*[0-9/]+%?\]\s(.*Creating.*)$",
+          performing, "normal" ],
         # [percent] Built
         [ "^\[\s*[0-9/]+%?\]\s(Built target)(\s.*)$",
           performed, "normal,bold" ],
         # [percent] Building
-        [ "^\[\s*[0-9/]+%?\]\s(Building \w* object)(\s+.*/)([-\w]+.c.*)(.o)$",
-            performing, "normal,normal,bold,normal"],
+        [ "^\[\s*[0-9/]+%?\]\s(Building \w* object)\s+(.*)(\.dir)(.*/)([-\w]+).c.*.o$",
+            performing+","+performing+","+performing+",Hash,"+performing, "normal,normal,normal,normal,bold"],
         # [percent] Generating
         [ "^\[\s*[0-9/]+%?\]\s(Generating)(\s+.*)$",
             performing, "normal,bold"],

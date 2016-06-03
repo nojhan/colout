@@ -76,7 +76,8 @@ def theme(context):
         [ qo+"(.*?)"+qc, "Cpp", "monokai" ],
 
         # source code after a "note: candidate are/is:"
-        [ _("note: ")+"((?!.*(candidate|"+qo+"|"+qc+")).*)$", "Cpp", "monokai" ],
+        [ _("note: ")+"((?!.*("+qo+"|"+qc+")).*)$", "Cpp", "monokai" ],
+        # [ _("note: ")+"(candidate:)(.*)$", "green,Cpp", "normal,monokai" ],
         # after the code part, to avoid matching ANSI escape chars
         [ _("note: "), "green", "normal" ]
     ]

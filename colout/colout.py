@@ -17,6 +17,7 @@ import signal
 import string
 import hashlib
 import functools
+import argparse
 
 # set the SIGPIPE handler to kill the program instead of
 # ending in a write error when a broken pipe occurs
@@ -755,64 +756,7 @@ def colorgen(stream, pattern, color="red", style="normal", on_groups=False):
 # Command line tools #
 ######################
 
-def __args_dirty__(argv, usage=""):
-    """
-    Roughly extract options from the command line arguments.
-    To be used only when argparse is not available.
-
-    Returns a tuple of (pattern,color,style,on_stderr).
-
-    >>> colout.__args_dirty__(["colout","pattern"],"usage")
-    ('pattern', 'red', 'normal', False)
-    >>> colout.__args_dirty__(["colout","pattern","colors","styles"],"usage")
-    ('pattern', 'colors', 'styles', False)
-    >>> colout.__args_dirty__(["colout","pattern","colors","styles","True"],"usage")
-    ('pattern', 'colors', 'styles', True)
-    """
-
-    # Use a dirty argument picker
-    # Check for bad usage or an help flag
-    if len(argv) < 2 \
-       or len(argv) > 10 \
-       or argv[1] == "--help" \
-       or argv[1] == "-h":
-        print(usage+"\n")
-        print("Usage:", argv[0], "<pattern> <color(s)> [<style(s)>] [<print on stderr?>] [<iterate over groups?>]")
-        print("\tAvailable colors:", " ".join(context["colors"]))
-        print("\tAvailable styles:", " ".join(context["styles"]))
-        print("Example:", argv[0], "'^(def)\s+(\w*).*$' blue,magenta italic,bold < colout.py")
-        sys.exit(1)
-
-    assert(len(argv) >= 2)
-    # Get mandatory arguments
-    pattern = argv[1]
-
-    # default values for optional args
-    color = "red"
-    style = "normal"
-    on_stderr = False
-
-    if len(argv) >= 3:
-        color = argv[2]
-        if len(argv) >= 4:
-            style = argv[3]
-            if len(argv) == 5:
-                on_groups = bool(argv[4])
-                if len(argv) == 6:
-                    as_colormap = bool(argv[5])
-                    if len(argv) == 7:
-                        as_theme = bool(argv[6])
-                        if len(argv) == 8:
-                            as_source = bool(argv[7])
-                            if len(argv) == 9:
-                                as_all = bool(argv[8])
-                                if len(argv) == 10:
-                                    scale = bool(argv[9])
-
-    return pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, scale
-
-
-def __args_parse__(argv, usage=""):
+def _args_parse(argv, usage=""):
     """
     Parse command line arguments with the argparse library.
     Returns a tuple of (pattern,color,style,on_stderr).
@@ -923,19 +867,9 @@ if __name__ == "__main__":
     #####################
     # Arguments parsing #
     #####################
-    try:
-        import argparse
-
-    # if argparse is not installed
-    except ImportError:
-        pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale \
-            = __args_dirty__(sys.argv, usage)
-
-    # if argparse is available
-    else:
-        pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale, \
-        debug, resources, palettes_dirs, themes_dirs, default_colormap \
-            = __args_parse__(sys.argv, usage)
+    pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale, \
+    debug, resources, palettes_dirs, themes_dirs, default_colormap \
+        = _args_parse(sys.argv, usage)
 
     if debug:
         lvl = logging.DEBUG

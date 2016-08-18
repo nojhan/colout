@@ -286,3 +286,10 @@ alternative one.
 See the ninja theme for how to extend an existing theme with more regexps and a different configuration. 
 See the gcc theme for an example of how to use the localization of existing softwares to build translated regexp.
 
+
+### Buffering
+
+Note that when you use colout within real time streams (like `tail -f X | qrep Y | colout Y`) of commands,
+you may observe that the lines are printed by large chunks and not one by one, in real time.
+This is not due to colout but to the buffering behavior of your shell.
+To fix that, use `stdbuf`, for example: `tail -f X | stdbuf -o0 grep Y | colout Y`.

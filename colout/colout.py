@@ -1089,6 +1089,6 @@ if __name__ == "__main__":
             for var in context:
                 print(var,context[var])
             print(traceback.format_exc())
-        logging.error("unknown color: %s" % e )
+        logging.error("unknown color: %s (maybe you forgot to install python3-pygments?)" % e )
         sys.exit( error_codes["UnknownColor"] )
 

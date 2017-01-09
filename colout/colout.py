@@ -776,7 +776,7 @@ def _args_parse(argv, usage=""):
 
     parser.add_argument("color", metavar="COLOR", type=str, nargs='?',
             default="red",
-            help="A number in [0…255], a color name, a colormap name, \
+            help="A number in [0...255], a color name, a colormap name, \
             a palette or a comma-separated list of those values." + pygments_warn)
 
     parser.add_argument("style", metavar="STYLE", type=str, nargs='?',

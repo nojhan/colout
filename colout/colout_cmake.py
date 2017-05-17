@@ -31,7 +31,8 @@ def theme(context):
         [ "^(Scanning dependencies of target)(.*)$",
           performing, "normal,bold" ],
         # Link (make)
-        [ "^(Linking .* )(library|executable) (.*/)*(.+(\.[aso]+)*)$",
+        # [ "^(Linking .* )(library|executable) (.*/)*(.+(\.[aso]+)*)$",
+        [ "^(Linking .* )(library|executable) (.*)$",
           untimed, "normal,normal,bold" ],
         # [percent] Creating something
         [ "^\[\s*[0-9/]+%?\]\s(.*Creating.*)$",

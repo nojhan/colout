@@ -12,6 +12,6 @@ def theme(context):
 
     return context,[
         # Passed
-        [ "^\s*[0-9]+/[0-9]+ Test\s+#[0-9]+: (.*)\s+\.+\s+(Passed)", passed],
-        [ "^\s*[0-9]+/[0-9]+ Test\s+#[0-9]+: (.*)\s+\.+(\*{3}.*)\s+.*", notpassed]
+        [ "^\s*[0-9]+/[0-9]+ Test\s+#[0-9]+: (.*)\s+\.+\s+(Passed)", "blue,"+passed],
+        [ "^\s*[0-9]+/[0-9]+ Test\s+#[0-9]+: (.*)\s+\.+(\*{3}.*)\s+.*", "blue,"+notpassed]
     ]

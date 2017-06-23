@@ -3,8 +3,6 @@
 import os
 import sys
 
-import colout
-
 try:
     from setuptools import setup
 except ImportError:
@@ -20,14 +18,14 @@ requires = ['argparse', 'pygments', 'babel']
 
 setup(
     name='colout',
-    version='0.1',
+    version='0.5',
     description='Color Up Arbitrary Command Output.',
     long_description=open('README.md').read(),
     author='nojhan',
     author_email='nojhan@nojhan.net',
     url='http://nojhan.github.com/colout/',
     packages=packages,
-    package_data={'': ['LICENSE']},
+    package_data={'': ['LICENSE', 'README.md']},
     package_dir={'colout': 'colout'},
     scripts=['bin/colout'],
     include_package_data=True,

@@ -30,6 +30,6 @@ setup(
     scripts=['bin/colout'],
     include_package_data=True,
     install_requires=requires,
-    license=open('LICENSE').read(),
+    license='GPLv3',
     zip_safe=False,
 )

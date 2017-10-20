@@ -44,6 +44,18 @@ context["colors"] = {
     "magenta": 5, "purple": 5, "cyan": 6, "white": 7, "none": -1
 }
 
+
+context["backgrounds"] = {
+    "black": 0,
+    "red": 1,
+    "green": 2,
+    "yellow": 3,
+    "blue": 4,
+    "magenta": 5,
+    "cyan": 6,
+    "white": 7
+    }
+
 context["themes"] = {}
 
 # pre-defined colormaps
@@ -508,6 +520,7 @@ def colorin(text, color="red", style="normal"):
 
     color_code = ""
     style_code = ""
+    background_code = ""
 
     # Convert the style code
     if style == "random" or style == "Random":
@@ -515,8 +528,11 @@ def colorin(text, color="red", style="normal"):
     else:
         if style in context["styles"]:
             style_code = str(context["styles"][style])
+    
+    color_background = color.strip().split("_")
+    color = color_background[0]
+    background = color_background[1] if len(color_background) == 2 else None
 
-    color = color.strip()
     m = mode(color)
 
     if color == "none":
@@ -572,9 +588,17 @@ def colorin(text, color="red", style="normal"):
     else:
         raise UnknownColor(color)
 
+    if background in context["backgrounds"] and m == 8:
+        background_code = endmarks[m] + str(40 + context["backgrounds"][background]) 
+    elif background == None:
+        pass
+    else:
+        raise UnknownColor(background)
+
+    
     if color_code is not None:
         if not debug:
-            return start + style_code + endmarks[m] + color_code + "m" + text + stop
+            return start + style_code + endmarks[m] + color_code + background_code + "m" + text + stop
         else:
             return start + style_code + endmarks[m] + color_code + "m" \
                     + "<color name=" + str(color) + " code=" + color_code \

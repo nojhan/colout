@@ -347,7 +347,7 @@ def color_random( color ):
     global context
     m = mode(color)
     if m == 8:
-        color_name = random.choice(context["colormaps"]["random"])
+        color_name = random.choice(list(context["colormaps"]["random"]))
         color_code = context["colors"][color_name]
         color_code = str(30 + color_code)
 

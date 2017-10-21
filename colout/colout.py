@@ -521,15 +521,19 @@ def colorin(text, color="red", style="normal"):
     color_code = ""
     style_code = ""
     background_code = ""
-
+    list_style_code = []
+    
     # Convert the style code
     if style == "random" or style == "Random":
         style = random.choice(list(context["styles"].keys()))
     else:
-        if style in context["styles"]:
-            style_code = str(context["styles"][style])
-    
-    color_background = color.strip().split("_")
+        styles = style.split(".")
+        for astyle in styles:
+            if astyle in context["styles"]:
+                list_style_code.append(str(context["styles"][astyle]))
+        style_code = ";".join(list_style_code)
+        
+    color_background = color.strip().split(".")
     color = color_background[0]
     background = color_background[1] if len(color_background) == 2 else None
 

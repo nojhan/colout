@@ -19,6 +19,8 @@ import hashlib
 import functools
 import argparse
 import six
+import pprint
+import copy
 
 # set the SIGPIPE handler to kill the program instead of
 # ending in a write error when a broken pipe occurs
@@ -39,11 +41,21 @@ context["styles"] = {
     "reverse": 7, "conceal": 8
 }
 
-# Available color names in 8-colors mode
-context["colors"] = {
-    "black": 0, "red": 1, "green": 2, "yellow": 3, "orange":3, "blue": 4,
-    "magenta": 5, "purple": 5, "cyan": 6, "white": 7, "none": -1
-}
+# Available color names in 8-colors mode.
+eight_colors = ["black","red","green","yellow","blue","magenta","cyan","white"]
+# Given in that order, the ASCII code is the index.
+eight_color_codes = {n:i for i,n in enumerate(eight_colors)}
+# One can add synonyms.
+eight_color_codes["orange"] = eight_color_codes["yellow"]
+eight_color_codes["purple"] = eight_color_codes["magenta"]
+
+# Foreground colors has a special "none" item.
+# Note: use copy to avoid having the same reference over fore/background.
+context["colors"] = copy.copy(eight_color_codes)
+context["colors"]["none"] = -1
+
+# Background has the same colors than foreground, but without the none code.
+context["backgrounds"] = copy.copy(eight_color_codes)
 
 context["themes"] = {}
 
@@ -78,6 +90,10 @@ context["colormap_idx"] = 0
 context["scale"] = (0,100)
 
 context["lexers"] = []
+
+# Character use as a delimiter
+# between foreground and background.
+context["groundmark"]="."
 
 class UnknownColor(Exception):
     pass
@@ -336,7 +352,7 @@ def color_random( color ):
     global context
     m = mode(color)
     if m == 8:
-        color_name = random.choice(context["colormaps"]["random"])
+        color_name = random.choice(list(context["colormaps"]["random"]))
         color_code = context["colors"][color_name]
         color_code = str(30 + color_code)
 
@@ -481,9 +497,13 @@ def color_lexer( name, style, text ):
         return "<"+name+">"+ highlight(text, lexer, formatter)[:-1] + "</"+name+">"
 
 
-def colorin(text, color="red", style="normal"):
+def colorin(text, color="red", style="normal", groundmark=context["groundmark"]):
     """
     Return the given text, surrounded by the given color ASCII markers.
+
+    The given color may be either a single name, encoding the foreground color,
+    or a pair of names, delimited by the given groundmark,
+    encoding foreground and background, e.g. "red.blue".
 
     If the given color is a name that exists in available colors,
     a 8-colors mode is assumed, else, a 256-colors mode.
@@ -509,18 +529,26 @@ def colorin(text, color="red", style="normal"):
 
     color_code = ""
     style_code = ""
+    background_code = ""
+    style_codes = []
 
     # Convert the style code
     if style == "random" or style == "Random":
         style = random.choice(list(context["styles"].keys()))
     else:
-        if style in context["styles"]:
-            style_code = str(context["styles"][style])
+        styles = style.split(groundmark)
+        for astyle in styles:
+            if astyle in context["styles"]:
+                style_codes.append(str(context["styles"][astyle]))
+        style_code = ";".join(style_codes)
 
-    color = color.strip()
+    color_pair = color.strip().split(groundmark)
+    color = color_pair[0]
+    background = color_pair[1] if len(color_pair) == 2 else "none"
+
     m = mode(color)
 
-    if color == "none":
+    if color == "none" and background == "none":
         # if no color, style cannot be applied
         if not debug:
             return text
@@ -573,14 +601,26 @@ def colorin(text, color="red", style="normal"):
     else:
         raise UnknownColor(color)
 
+    if background in context["backgrounds"] and m == 8:
+        background_code = endmarks[m] + str(40 + context["backgrounds"][background]) 
+    elif background == "none":
+        pass
+    else:
+        raise UnknownColor(background)
+
     if color_code is not None:
         if not debug:
-            return start + style_code + endmarks[m] + color_code + "m" + text + stop
+            return start + style_code + endmarks[m] + color_code + background_code + "m" + text + stop
         else:
-            return start + style_code + endmarks[m] + color_code + "m" \
-                    + "<color name=" + str(color) + " code=" + color_code \
-                    + " style=" + str(style) + " stylecode=" + style_code \
-                    + " mode=" + str(m) + ">" \
+            return start + style_code + endmarks[m] + color_code + background_code + "m" \
+                    + "<color name=" + str(color) \
+                    + " code=" + color_code \
+                    + " style=" + str(style) \
+                    + " stylecode=" + style_code \
+                    + " background=" + str(background) \
+                    + " backgroundcode=" + background_code.strip(endmarks[m]) \
+                    + " mode=" + str(m) \
+                    + ">" \
                     + text + "</color>" + stop
     else:
         if not debug:
@@ -886,6 +926,11 @@ if __name__ == "__main__":
     ##################
     # Load resources #
     ##################
+
+    if debug:
+        setting = pprint.pformat(context, depth=2)
+        logging.debug(setting)
+
     try:
         # Search for available resources files (themes, palettes)
         # in the same dir as the colout.py script

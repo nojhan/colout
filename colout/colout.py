@@ -698,6 +698,8 @@ def write(colored, stream = sys.stdout):
     """
     Write "colored" on sys.stdout, then flush.
     """
+    if isinstance(colored, unicode):
+        colored = colored.encode('utf-8')
     try:
         stream.write(colored)
         stream.flush()

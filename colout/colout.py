@@ -5,22 +5,22 @@
 # Licensed under the GPL version 3
 # 2012 (c) nojhan <nojhan@nojhan.net>
 
-import sys
-import re
-import random
 import os
+import re
+import six
+import sys
+import copy
 import glob
 import math
-import importlib
-import logging
+import pprint
+import random
 import signal
 import string
 import hashlib
-import functools
+import logging
 import argparse
-import six
-import pprint
-import copy
+import importlib
+import functools
 
 # set the SIGPIPE handler to kill the program instead of
 # ending in a write error when a broken pipe occurs
@@ -105,10 +105,24 @@ class DuplicatedPalette(Exception):
 class DuplicatedTheme(Exception):
     pass
 
+class MixedModes(Exception):
+    pass
+
 
 ###############################################################################
 # Ressource parsing helpers
 ###############################################################################
+
+def make_colormap( colors, sep_list = context["sep_list"] ):
+    cmap = colors.split(sep_list)
+
+    # Check unicity of mode.
+    modes = [mode(c) for c in cmap]
+    if len(uniq(modes)) > 1:
+        # Format a list of color:mode, for error display.
+        raise MixedModes(", ".join(["%s:%s" % cm for cm in zip(cmap,modes)]))
+
+    return cmap
 
 
 def set_special_colormaps( cmap, sep_list = context["sep_list"] ):
@@ -343,10 +357,10 @@ def mode( color ):
         raise UnknownColor(color)
 
 
-def next_in_map( color ):
+def next_in_map( name ):
     global context
     # loop over indices in colormap
-    return (context["colormap_idx"]+1) % len(context["colormaps"][color])
+    return (context["colormap_idx"]+1) % len(context["colormaps"][name])
 
 
 def color_random( color ):
@@ -462,7 +476,7 @@ def color_hash( name, text ):
 def color_map(name):
     global context
     # current color
-    color = context["colormaps"][name][context["colormap_idx"]]
+    color = context["colormaps"][name][ context["colormap_idx"] ]
 
     m = mode(color)
     if m == 8:
@@ -472,7 +486,7 @@ def color_map(name):
         assert( 0 <= color_nb <= 255 )
         color_code = str(color_nb)
 
-    context["colormap_idx"] = next_in_map(color)
+    context["colormap_idx"] = next_in_map(name)
 
     return color_code
 
@@ -547,8 +561,6 @@ def colorin(text, color="red", style="normal", sep_back=context["sep_back"]):
     color = color_pair[0]
     background = color_pair[1] if len(color_pair) == 2 else "none"
 
-    m = mode(color)
-
     if color == "none" and background == "none":
         # if no color, style cannot be applied
         if not debug:
@@ -569,7 +581,11 @@ def colorin(text, color="red", style="normal", sep_back=context["sep_back"]):
     # Really useful only when using colout as a library
     # thus you can change the "colormap" variable to your favorite one before calling colorin
     elif color == "colormap":
-        color_code = color_map(color)
+        # "default" should have been set to the user-defined colormap.
+        color_code = color_map("default")
+        # Use the first of the user-defined colormap to detect the mode,
+        # thus set `color`, to be used by `mode` below.
+        color = context["colormaps"]["default"][0]
 
     # Registered colormaps should be tested after special colors,
     # because special tags are also registered as colormaps,
@@ -601,6 +617,8 @@ def colorin(text, color="red", style="normal", sep_back=context["sep_back"]):
     # unrecognized
     else:
         raise UnknownColor(color)
+
+    m = mode(color)
 
     if background in context["backgrounds"] and m == 8:
         background_code = endmarks[m] + str(40 + context["backgrounds"][background]) 
@@ -883,10 +901,10 @@ def _args_parse(argv, usage=""):
             if it is lower case, use the 8 colors mode. \
             Interpret COLOR as a Pygments style." + pygments_warn)
 
-    parser.add_argument("-m", "--sep-list", metavar="CHAR", default=",",
+    parser.add_argument("-m", "--sep-list", metavar="CHAR", default=",", type=str, nargs=1,
             help="Use this character as a separator for list of colors (instead of comma).")
 
-    parser.add_argument("-b", "--sep-back", metavar="CHAR", default=".",
+    parser.add_argument("-b", "--sep-back", metavar="CHAR", default=".", type=str, nargs=1,
             help="Use this character as a separator for foreground/background pairs (instead of period).")
 
 
@@ -913,7 +931,7 @@ def write_all( as_all, stream_in, stream_out, function, *args ):
 
 if __name__ == "__main__":
 
-    error_codes = {"UnknownColor":1, "DuplicatedPalette":2}
+    error_codes = {"UnknownColor":1, "DuplicatedPalette":2, "MixedModes":3}
 
     usage = "A regular expression based formatter that color up an arbitrary text stream."
 
@@ -1033,7 +1051,7 @@ if __name__ == "__main__":
         # Default color maps
         if default_colormap:
             if default_colormap not in context["colormaps"]:
-                cmap = default_colormap.split(context["sep_list"])
+                cmap = make_colormap(default_colormap,context["sep_list"])
 
             elif default_colormap in context["colormaps"]:
                 cmap = context["colormaps"][default_colormap]
@@ -1042,8 +1060,8 @@ if __name__ == "__main__":
 
         # explicit color map
         if as_colormap is True and color not in context["colormaps"]:
-            context["colormaps"]["Default"] = color.split(context["sep_list"])  # replace the colormap by the given colors
-            context["colormaps"]["default"] = color.split(context["sep_list"])  # replace the colormap by the given colors
+            context["colormaps"]["Default"] = make_colormap(color,context["sep_list"])  # replace the colormap by the given colors
+            context["colormaps"]["default"] = make_colormap(color,context["sep_list"])  # replace the colormap by the given colors
             color = "colormap"  # use the keyword to switch to colormap instead of list of colors
             logging.debug("used-defined default colormap: %s" % context["sep_list"].join(context["colormaps"]["Default"]) )
 
@@ -1081,9 +1099,12 @@ if __name__ == "__main__":
     except UnknownColor as e:
         if debug:
             import traceback
-            for var in context:
-                print(var,context[var])
             print(traceback.format_exc())
-        logging.error("unknown color: %s (maybe you forgot to install python3-pygments?)" % e )
+        logging.error("Unknown color: %s (maybe you forgot to install python3-pygments?)" % e )
         sys.exit( error_codes["UnknownColor"] )
+
+    except MixedModes as e:
+        logging.error("You cannot mix up color modes when defining your own colormap." \
+                    + " Check the following 'color:mode' pairs: %s." % e )
+        sys.exit( error_codes["MixedModes"] )
 

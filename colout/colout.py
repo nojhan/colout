@@ -134,8 +134,8 @@ def set_special_colormaps( cmap, sep_list = context["sep_list"] ):
     context["colormaps"]["Hash"]    = cmap
     context["colormaps"]["default"] = cmap
     context["colormaps"]["Default"] = cmap
-    context["colormaps"]["random"] = cmap
-    context["colormaps"]["Random"] = cmap
+    context["colormaps"]["random"]  = cmap
+    context["colormaps"]["Random"]  = cmap
     context["user_defined_colormaps"] = True
     logging.debug("user-defined special colormap: %s" % sep_list.join([str(i) for i in cmap]) )
 
@@ -900,10 +900,10 @@ def _args_parse(argv, usage=""):
             if it is lower case, use the 8 colors mode. \
             Interpret COLOR as a Pygments style." + pygments_warn)
 
-    parser.add_argument("-m", "--sep-list", metavar="CHAR", default=",", type=str, nargs=1,
+    parser.add_argument("-m", "--sep-list", metavar="CHAR", default=",", type=str,
             help="Use this character as a separator for list of colors (instead of comma).")
 
-    parser.add_argument("-b", "--sep-back", metavar="CHAR", default=".", type=str, nargs=1,
+    parser.add_argument("-b", "--sep-back", metavar="CHAR", default=".", type=str,
             help="Use this character as a separator for foreground/background pairs (instead of period).")
 
 
@@ -958,7 +958,9 @@ if __name__ == "__main__":
         logging.debug(setting)
 
     context["sep_list"] = sep_list
+    logging.debug("Color list separator: %s" % context["sep_list"])
     context["sep_back"] = sep_back
+    logging.debug("Color pair separator: %s" % context["sep_back"])
 
     try:
         # Search for available resources files (themes, palettes)

@@ -93,7 +93,8 @@ context["lexers"] = []
 
 # Character use as a delimiter
 # between foreground and background.
-context["groundmark"]="."
+context["sep_back"]="."
+context["sep_list"]=","
 
 class UnknownColor(Exception):
     pass
@@ -110,7 +111,7 @@ class DuplicatedTheme(Exception):
 ###############################################################################
 
 
-def set_special_colormaps( cmap ):
+def set_special_colormaps( cmap, sep_list = context["sep_list"] ):
     """Change all the special colors to a single colormap (which must be a list of colors)."""
     global context
     context["colormaps"]["scale"]   = cmap
@@ -122,7 +123,7 @@ def set_special_colormaps( cmap ):
     context["colormaps"]["random"] = cmap
     context["colormaps"]["Random"] = cmap
     context["user_defined_colormaps"] = True
-    logging.debug("user-defined special colormap: %s" % ",".join([str(i) for i in cmap]) )
+    logging.debug("user-defined special colormap: %s" % sep_list.join([str(i) for i in cmap]) )
 
 
 def parse_gimp_palette( filename ):
@@ -497,12 +498,12 @@ def color_lexer( name, style, text ):
         return "<"+name+">"+ highlight(text, lexer, formatter)[:-1] + "</"+name+">"
 
 
-def colorin(text, color="red", style="normal", groundmark=context["groundmark"]):
+def colorin(text, color="red", style="normal", sep_back=context["sep_back"]):
     """
     Return the given text, surrounded by the given color ASCII markers.
 
     The given color may be either a single name, encoding the foreground color,
-    or a pair of names, delimited by the given groundmark,
+    or a pair of names, delimited by the given sep_back,
     encoding foreground and background, e.g. "red.blue".
 
     If the given color is a name that exists in available colors,
@@ -536,13 +537,13 @@ def colorin(text, color="red", style="normal", groundmark=context["groundmark"])
     if style == "random" or style == "Random":
         style = random.choice(list(context["styles"].keys()))
     else:
-        styles = style.split(groundmark)
+        styles = style.split(sep_back)
         for astyle in styles:
             if astyle in context["styles"]:
                 style_codes.append(str(context["styles"][astyle]))
         style_code = ";".join(style_codes)
 
-    color_pair = color.strip().split(groundmark)
+    color_pair = color.strip().split(sep_back)
     color = color_pair[0]
     background = color_pair[1] if len(color_pair) == 2 else "none"
 
@@ -642,7 +643,7 @@ def colorout(text, match, prev_end, color="red", style="normal", group=0):
     return colored_text, end
 
 
-def colorup(text, pattern, color="red", style="normal", on_groups=False):
+def colorup(text, pattern, color="red", style="normal", on_groups=False, sep_list=context["sep_list"]):
     """
     Color up every characters that match the given regexp patterns.
     If groups are specified, only color up them and not the whole pattern.
@@ -690,11 +691,11 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False):
 
             # Build a list of colors that match the number of grouped,
             # if there is not enough colors, duplicate the last one.
-            colors_l = color.split(",")
+            colors_l = color.split(sep_list)
             group_colors = colors_l + [colors_l[-1]] * (nb_groups - len(colors_l))
 
             # Same for styles
-            styles_l = style.split(",")
+            styles_l = style.split(sep_list)
             group_styles = styles_l + [styles_l[-1]] * (nb_groups - len(styles_l))
 
             # If we want to iterate colormaps on groups instead of patterns
@@ -777,7 +778,7 @@ def map_write( stream_in, stream_out, function, *args ):
         write( function(item, *args), stream_out )
 
 
-def colorgen(stream, pattern, color="red", style="normal", on_groups=False):
+def colorgen(stream, pattern, color="red", style="normal", on_groups=False, sep_list=context["sep_list"]):
     """
     A generator that colors the items given in an iterable input.
 
@@ -793,7 +794,7 @@ def colorgen(stream, pattern, color="red", style="normal", on_groups=False):
             break
         if not item:
             break
-        yield colorup(item, pattern, color, style, on_groups)
+        yield colorup(item, pattern, color, style, on_groups, sep_list)
 
 
 ######################
@@ -864,7 +865,8 @@ def _args_parse(argv, usage=""):
     parser.add_argument("-d", "--default", metavar="COLORMAP", default=None,
             help="When using special colormaps (`random`, `scale` or `hash`), use this COLORMAP. \
                 This can be either one of the available colormaps or a comma-separated list of colors. \
-                WARNING: be sure to specify a default colormap that is compatible with the special colormap's mode.")
+                WARNING: be sure to specify a default colormap that is compatible with the special colormap's mode \
+                (8 or 256 colors).")
 
     # This normally should be an option with an argument, but this would end in an error,
     # as no regexp is supposed to be passed after calling this option,
@@ -881,6 +883,13 @@ def _args_parse(argv, usage=""):
             if it is lower case, use the 8 colors mode. \
             Interpret COLOR as a Pygments style." + pygments_warn)
 
+    parser.add_argument("-m", "--sep-list", metavar="CHAR", default=",",
+            help="Use this character as a separator for list of colors (instead of comma).")
+
+    parser.add_argument("-b", "--sep-back", metavar="CHAR", default=".",
+            help="Use this character as a separator for foreground/background pairs (instead of period).")
+
+
     parser.add_argument("--debug", action="store_true",
             help="Debug mode: print what's going on internally, useful if you want to check what features are available.")
 
@@ -888,7 +897,7 @@ def _args_parse(argv, usage=""):
 
     return args.pattern[0], args.color, args.style, args.groups, \
            args.colormap, args.theme, args.source, args.all, args.scale, args.debug, args.resources, args.palettes_dir, \
-           args.themes_dir, args.default
+           args.themes_dir, args.default, args.sep_list, args.sep_back
 
 
 def write_all( as_all, stream_in, stream_out, function, *args ):
@@ -912,7 +921,7 @@ if __name__ == "__main__":
     # Arguments parsing #
     #####################
     pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale, \
-    debug, resources, palettes_dirs, themes_dirs, default_colormap \
+    debug, resources, palettes_dirs, themes_dirs, default_colormap, sep_list, sep_back \
         = _args_parse(sys.argv, usage)
 
     if debug:
@@ -930,6 +939,9 @@ if __name__ == "__main__":
     if debug:
         setting = pprint.pformat(context, depth=2)
         logging.debug(setting)
+
+    context["sep_list"] = sep_list
+    context["sep_back"] = sep_back
 
     try:
         # Search for available resources files (themes, palettes)
@@ -965,7 +977,7 @@ if __name__ == "__main__":
         sys.exit( error_codes["DuplicatedPalette"] )
 
     if resources:
-        asked=[r.lower() for r in pattern.split(",")]
+        asked=[r.lower() for r in pattern.split(context["sep_list"])]
 
         def join_sort( l ):
             """
@@ -1015,25 +1027,25 @@ if __name__ == "__main__":
 
     try:
         if myscale:
-            context["scale"] = tuple([float(i) for i in myscale.split(",")])
+            context["scale"] = tuple([float(i) for i in myscale.split(context["sep_list"])])
             logging.debug("user-defined scale: %f,%f" % context["scale"])
 
         # Default color maps
         if default_colormap:
             if default_colormap not in context["colormaps"]:
-                cmap = default_colormap.split(",")
+                cmap = default_colormap.split(context["sep_list"])
 
             elif default_colormap in context["colormaps"]:
                 cmap = context["colormaps"][default_colormap]
 
-            set_special_colormaps( cmap )
+            set_special_colormaps( cmap, context["sep_list"] )
 
         # explicit color map
         if as_colormap is True and color not in context["colormaps"]:
-            context["colormaps"]["Default"] = color.split(",")  # replace the colormap by the given colors
-            context["colormaps"]["default"] = color.split(",")  # replace the colormap by the given colors
+            context["colormaps"]["Default"] = color.split(context["sep_list"])  # replace the colormap by the given colors
+            context["colormaps"]["default"] = color.split(context["sep_list"])  # replace the colormap by the given colors
             color = "colormap"  # use the keyword to switch to colormap instead of list of colors
-            logging.debug("used-defined default colormap: %s" % ",".join(context["colormaps"]["Default"]) )
+            logging.debug("used-defined default colormap: %s" % context["sep_list"].join(context["colormaps"]["Default"]) )
 
         # if theme
         if as_theme:
@@ -1064,7 +1076,7 @@ if __name__ == "__main__":
 
         # if color
         else:
-            write_all( as_all, sys.stdin, sys.stdout, colorup, pattern, color, style, on_groups )
+            write_all( as_all, sys.stdin, sys.stdout, colorup, pattern, color, style, on_groups, context["sep_list"] )
 
     except UnknownColor as e:
         if debug:

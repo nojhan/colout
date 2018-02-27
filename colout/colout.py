@@ -313,9 +313,8 @@ def load_lexers():
             except IndexError:
                 logging.warning("cannot load lexer: %s" % lexer[1][0])
                 pass
-            else:
-                logging.debug("loaded lexer %s" % lexer[1][0])
         lexers.sort()
+        logging.debug("loaded %i lexers: %s" % (len(lexers), ", ".join(lexers)))
 
     context["lexers"] = lexers
 

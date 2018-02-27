@@ -93,7 +93,7 @@ context["lexers"] = []
 
 # Character use as a delimiter
 # between foreground and background.
-context["sep_back"]="."
+context["sep_pair"]="."
 context["sep_list"]=","
 
 class UnknownColor(Exception):
@@ -487,7 +487,7 @@ def color_map(name):
 
     context["colormap_idx"] = next_in_map(name)
 
-    return color_code
+    return color,color_code
 
 
 def color_lexer( name, style, text ):
@@ -511,12 +511,12 @@ def color_lexer( name, style, text ):
         return "<"+name+">"+ highlight(text, lexer, formatter)[:-1] + "</"+name+">"
 
 
-def colorin(text, color="red", style="normal", sep_back=context["sep_back"]):
+def colorin(text, color="red", style="normal", sep_pair=context["sep_pair"]):
     """
     Return the given text, surrounded by the given color ASCII markers.
 
     The given color may be either a single name, encoding the foreground color,
-    or a pair of names, delimited by the given sep_back,
+    or a pair of names, delimited by the given sep_pair,
     encoding foreground and background, e.g. "red.blue".
 
     If the given color is a name that exists in available colors,
@@ -550,13 +550,13 @@ def colorin(text, color="red", style="normal", sep_back=context["sep_back"]):
     if style == "random" or style == "Random":
         style = random.choice(list(context["styles"].keys()))
     else:
-        styles = style.split(sep_back)
+        styles = style.split(sep_pair)
         for astyle in styles:
             if astyle in context["styles"]:
                 style_codes.append(str(context["styles"][astyle]))
         style_code = ";".join(style_codes)
 
-    color_pair = color.strip().split(sep_back)
+    color_pair = color.strip().split(sep_pair)
     color = color_pair[0]
     background = color_pair[1] if len(color_pair) == 2 else "none"
 
@@ -577,14 +577,10 @@ def colorin(text, color="red", style="normal", sep_back=context["sep_back"]):
     elif color.lower() == "hash":
         color_code = color_hash( color, text )
 
-    # Really useful only when using colout as a library
-    # thus you can change the "colormap" variable to your favorite one before calling colorin
+    # The user can change the "colormap" variable to its favorite one before calling colorin.
     elif color == "colormap":
         # "default" should have been set to the user-defined colormap.
-        color_code = color_map("default")
-        # Use the first of the user-defined colormap to detect the mode,
-        # thus set `color`, to be used by `mode` below.
-        color = context["colormaps"]["default"][0]
+        color,color_code = color_map("default")
 
     # Registered colormaps should be tested after special colors,
     # because special tags are also registered as colormaps,
@@ -622,7 +618,7 @@ def colorin(text, color="red", style="normal", sep_back=context["sep_back"]):
     if background in context["backgrounds"] and m == 8:
         background_code = endmarks[m] + str(40 + context["backgrounds"][background]) 
     elif background == "none":
-        pass
+        background_code = ""
     else:
         raise UnknownColor(background)
 
@@ -900,12 +896,11 @@ def _args_parse(argv, usage=""):
             if it is lower case, use the 8 colors mode. \
             Interpret COLOR as a Pygments style." + pygments_warn)
 
-    parser.add_argument("-m", "--sep-list", metavar="CHAR", default=",", type=str,
-            help="Use this character as a separator for list of colors (instead of comma).")
+    parser.add_argument("-e", "--sep-list", metavar="CHAR", default=",", type=str,
+            help="Use this character as a separator for list of colors/resources/numbers (instead of comma).")
 
-    parser.add_argument("-b", "--sep-back", metavar="CHAR", default=".", type=str,
+    parser.add_argument("-E", "--sep-pair", metavar="CHAR", default=".", type=str,
             help="Use this character as a separator for foreground/background pairs (instead of period).")
-
 
     parser.add_argument("--debug", action="store_true",
             help="Debug mode: print what's going on internally, useful if you want to check what features are available.")
@@ -914,7 +909,7 @@ def _args_parse(argv, usage=""):
 
     return args.pattern[0], args.color, args.style, args.groups, \
            args.colormap, args.theme, args.source, args.all, args.scale, args.debug, args.resources, args.palettes_dir, \
-           args.themes_dir, args.default, args.sep_list, args.sep_back
+           args.themes_dir, args.default, args.sep_list, args.sep_pair
 
 
 def write_all( as_all, stream_in, stream_out, function, *args ):
@@ -938,7 +933,7 @@ if __name__ == "__main__":
     # Arguments parsing #
     #####################
     pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale, \
-    debug, resources, palettes_dirs, themes_dirs, default_colormap, sep_list, sep_back \
+    debug, resources, palettes_dirs, themes_dirs, default_colormap, sep_list, sep_pair \
         = _args_parse(sys.argv, usage)
 
     if debug:
@@ -953,14 +948,10 @@ if __name__ == "__main__":
     # Load resources #
     ##################
 
-    if debug:
-        setting = pprint.pformat(context, depth=2)
-        logging.debug(setting)
-
     context["sep_list"] = sep_list
-    logging.debug("Color list separator: %s" % context["sep_list"])
-    context["sep_back"] = sep_back
-    logging.debug("Color pair separator: %s" % context["sep_back"])
+    logging.debug("Color list separator: '%s'" % context["sep_list"])
+    context["sep_pair"] = sep_pair
+    logging.debug("Color pair separator: '%s'" % context["sep_pair"])
 
     try:
         # Search for available resources files (themes, palettes)
@@ -994,6 +985,10 @@ if __name__ == "__main__":
     except DuplicatedPalette as e:
         logging.error( "duplicated palette file name: %s" % e )
         sys.exit( error_codes["DuplicatedPalette"] )
+
+    # if debug:
+    #     setting = pprint.pformat(context, depth=2)
+    #     logging.debug(setting)
 
     if resources:
         asked=[r.lower() for r in pattern.split(context["sep_list"])]

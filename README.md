@@ -5,7 +5,7 @@ colout(1) -- Color Up Arbitrary Command Output
 
 `colout` [-h] [-r RESOURCE]
 
-`colout` [-g] [-c] [-l min,max] [-a] [-t] [-T DIR] [-P DIR] [-d COLORMAP] [-s] [--debug] PATTERN [COLOR(S) [STYLE(S)]]
+`colout` [-g] [-c] [-l min,max] [-a] [-t] [-T DIR] [-P DIR] [-d COLORMAP] [-s] [-e CHAR] [-E CHAR] [--debug] PATTERN [COLOR(S) [STYLE(S)]]
 
 ## DESCRIPTION
 
@@ -27,6 +27,8 @@ RGB hexadecimal triplet (`#11aaff`, for example) or any number between 0 and 255
 Available styles are: normal, bold, faint, italic, underline, blink,
 rapid\_blink, reverse, conceal or random (some styles may have no effect, depending
 on your terminal).
+
+In some case, you can indicate a foreground and a background color, by indicating boths colors separated by a period(for example: `red.blue`). You can also use this system to combine two styles (for example, for a bold style that also blinks: `bold.blink`).
 
 `rainbow` will cycle over a the default colormap at each matching pattern.
 `Rainbow` will do the same over the default colormap for the 256-colors mode
@@ -152,6 +154,12 @@ Gentoo
   is upper case, use the 256 color mode, if it is lower case, use the 8 colors mode.
   In 256 color mode, interpret COLOR as a Pygments style (e.g. "default").
 
+* `-e CHAR`, `--sep-list CHAR`:
+  Use this character as a separator for list of colors/resources/numbers (instead of comma).
+
+* `-E CHAR`, `--sep-pair CHAR`:
+  Use this character as a separator for foreground/background pairs (instead of period).
+
 * `--debug`:
   Debug mode: print what's going on internally, if you want to check what features are available.
 
@@ -183,6 +191,7 @@ with each matching colors.
 Using a default colormap that is incompatible with the special colormap's mode
 will end badly.
 
+Color pairs ("foreground.background") work in 8-colors mode for simple coloring, but may fail with `--colormap`.
 
 ## EXAMPLES
 
@@ -289,7 +298,8 @@ See the gcc theme for an example of how to use the localization of existing soft
 
 ### Buffering
 
-Note that when you use colout within real time streams (like `tail -f X | qrep Y | colout Y`) of commands,
+Note that when you use colout within real time streams (like `tail -f X | grep Y | colout Z`) of commands,
 you may observe that the lines are printed by large chunks and not one by one, in real time.
 This is not due to colout but to the buffering behavior of your shell.
-To fix that, use `stdbuf`, for example: `tail -f X | stdbuf -o0 grep Y | colout Y`.
+To fix that, use `stdbuf`, for example: `tail -f X | stdbuf -o0 grep Y | colout Z`.
+

@@ -18,7 +18,7 @@ requires = ['argparse', 'pygments', 'babel']
 
 setup(
     name='colout',
-    version='0.5',
+    version='0.6',
     description='Color Up Arbitrary Command Output.',
     long_description=open('README.md').read(),
     author='nojhan',

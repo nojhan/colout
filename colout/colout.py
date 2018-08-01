@@ -18,7 +18,6 @@ import string
 import hashlib
 import functools
 import argparse
-import six
 
 # set the SIGPIPE handler to kill the program instead of
 # ending in a write error when a broken pipe occurs
@@ -28,6 +27,8 @@ signal.signal( signal.SIGPIPE, signal.SIG_DFL )
 ###############################################################################
 # Global variable(s)
 ###############################################################################
+
+PY2 = sys.version_info.major == 2
 
 context = {}
 debug = False
@@ -699,7 +700,7 @@ def write(colored, stream = sys.stdout):
     """
     Write "colored" on sys.stdout, then flush.
     """
-    if six.PY2: # If Python 2.x: force unicode
+    if PY2: # If Python 2.x: force unicode
         if isinstance(colored, unicode):
             colored = colored.encode('utf-8')
     try:

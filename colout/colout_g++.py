@@ -36,15 +36,16 @@ def theme(context):
     return context,[
         # Command line
         [ "[/\s]([cg]\+\+-*[0-9]*\.*[0-9]*)", "white", "bold" ],
-        [ "\s(\-D)(\s*[^\s]+\s)", "none,green", "normal,bold" ],
-        [ "\s-g\s", "green", "normal" ],
-        [ "\s-O[0-4]*\s", "green", "normal" ],
+        [ "\s(\-D)(\s*[^\s]+)", "none,green", "normal,bold" ],
+        [ "\s(-g)", "green", "normal" ],
+        [ "\s-O[0-4]", "green", "normal" ],
         [ "\s-[Wf][^\s]*", "magenta", "normal" ],
+        [ "\s-pedantic", "magenta", "normal" ],
         [ "\s(-I)(/*[^\s]+/)([^/\s]+)", "none,blue", "normal,normal,bold" ],
         [ "\s(-L)(/*[^\s]+/)([^/\s]+)", "none,cyan", "normal,normal,bold" ],
         [ "\s(-l)([^/\s]+)", "none,cyan", "normal,bold" ],
         [ "\s-[oc]", "red", "bold" ],
-        [ "\s(-+std)=*([^s]+)", "red", "normal,bold" ],
+        [ "\s(-+std(?:lib)?)=?([^\s]+)", "red", "normal,bold" ],
 
         # Important messages
         [ _("error: "), "red", "bold" ],

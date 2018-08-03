@@ -178,7 +178,6 @@ special characters that would be recognize by your shell.
 
 Recommended packages:
 
-* `argparse` for a usable arguments parsing
 * `pygments` for the source code syntax coloring
 * `babel` for a locale-aware number parsing
 
@@ -189,7 +188,7 @@ Don't use nested groups or colout will duplicate the corresponding input text
 with each matching colors.
 
 Using a default colormap that is incompatible with the special colormap's mode
-will end badly.
+(i.e. number of colors) will end badly.
 
 Color pairs ("foreground.background") work in 8-colors mode for simple coloring, but may fail with `--colormap`.
 
@@ -277,6 +276,66 @@ You then can use the `cm` alias as a prefix to your build command,
 for example: `cm make test`
 
 
+### GDB integration
+
+You can use `colout` within the GNU debuger (`gbd`) to color its output.
+For example, the following script `.gdbinit` configuration will color
+the output of the backtrace command:
+
+```gdb
+set confirm off
+
+# Don't wrap line or the coloring regexp won't work.
+set width 0
+
+# Create a named pipe to get outputs from gdb
+shell test -e /tmp/coloutPipe && rm /tmp/coloutPipe
+shell mkfifo /tmp/coloutPipe
+
+define logging_on
+  # Instead of printing on stdout only, log everything...
+  set logging redirect on
+  # ... in our named pipe.
+  set logging on /tmp/coloutPipe
+end
+
+define logging_off
+  set logging off
+  set logging redirect off
+  # Because both gdb and our commands are writing on the same pipe at the same
+  # time, it is more than probable that gdb will end before our (higher level)
+  # commands.  The gdb prompt will thus render before the result of the command,
+  # which is highly akward. To prevent this, we need to wait before displaying
+  # the prompt again.  The more your commands are complex, the higher you will
+  # need to set this.
+  shell sleep 0.4s
+end
+
+define hook-backtrace
+    # Note: match path = [path]file[.ext] = (.*/)?(?:$|(.+?)(?:(\.[^.]*)|))
+    # This line color highlights:
+    # – lines that link to source code,
+    # – function call in green,
+    # – arguments names in yellow, values in magenta,
+    # — the parent directory in bold red (assuming that the debug session would be in a "project/build/" directory).
+    shell cat /tmp/coloutPipe | colout "^(#)([0-9]+)\s+(0x\S+ )*(in )*(.*) (\(.*\)) (at) (.*/)?(?:$|(.+?)(?:(\.[^.]*)|)):([0-9]+)" red,red,blue,red,green,magenta,red,none,white,white,yellow normal,bold,normal,normal,normal,normal,normal,bold,bold,bold | colout "([\w\s]*?)(=)([^,]*?)([,\)])" yellow,blue,magenta,blue normal | colout "/($(basename $(dirname $(pwd))))/" red bold &
+    logging_on
+end
+define hookpost-backtrace
+    logging_off
+end
+
+# Don't forget to clean the adhoc pipe.
+define hook-quit
+    set confirm off
+    shell rm -f /tmp/coloutPipe
+end
+```
+
+Take a look at the `example.gdbinit` file distributed with colout for more gdb commands.
+
+
+
 ### Themes
 
 You can easily add your own theme to colout.
@@ -303,3 +362,28 @@ you may observe that the lines are printed by large chunks and not one by one, i
 This is not due to colout but to the buffering behavior of your shell.
 To fix that, use `stdbuf`, for example: `tail -f X | stdbuf -o0 grep Y | colout Z`.
 
+## Authors
+
+* nojhan <nojhan@nojhan.net>: original idea, main developer, maintener.
+* Adrian Sadłocha <adrian.adek@gmail.com>
+* Alex Burka <aburka@seas.upenn.edu>
+* Brian Foley <bpfoley@gmail.com>
+* Charles Lewis <noodle@umich.edu>
+* DainDwarf <daindwarf@gmail.com>
+* Dimitri Merejkowsky <dmerejkowsky@aldebaran-robotics.com>
+* Dong Wei Ming <ciici123@gmail.com>
+* Fabien MARTY <fabien.marty@gmail.com>
+* Jason Green <jason@green.io>
+* John Anderson <sontek@gmail.com>
+* Jonathan Poelen <jonathan.poelen@gmail.com>
+* Louis-Kenzo Furuya Cahier <louiskenzo@gmail.com>
+* Mantas <sirexas@gmail.com>
+* Martin Ueding <dev@martin-ueding.de>
+* Nicolas Pouillard <nicolas.pouillard@gmail.com>
+* Nurono <while0pass@yandex.ru>
+* Oliver Bristow <obristow@mintel.com>
+* orzrd <61966225@qq.com>
+* Philippe Daouadi <p.daouadi@free.fr>
+* Piotr Staroszczyk <piotr.staroszczyk@get24.org>
+* Scott Lawrence <oz@lindenlab.com>
+* Xu Di <xudifsd@gmail.com>

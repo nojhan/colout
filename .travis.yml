@@ -10,4 +10,6 @@ python:
   - "pypy3"
 install:
   - pip install .
-script: colout --help
+script:
+  - colout --help
+  - echo heyoo | colout hey yellow

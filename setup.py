@@ -36,6 +36,9 @@ setup(
     use_scm_version=True,
     classifiers=classifiers,
     description='Color Up Arbitrary Command Output.',
+    entry_points={
+        'console_scripts': ['colout=colout.colout:main'],
+    },
     long_description=open('README.md').read(),
     author='nojhan',
     author_email='nojhan@nojhan.net',
@@ -43,7 +46,6 @@ setup(
     packages=packages,
     package_data={'': ['LICENSE', 'README.md']},
     package_dir={'colout': 'colout'},
-    scripts=['bin/colout'],
     setup_requires=setup_requires,
     include_package_data=True,
     install_requires=requires,

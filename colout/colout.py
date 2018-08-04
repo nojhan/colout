@@ -927,8 +927,8 @@ def write_all( as_all, stream_in, stream_out, function, *args ):
         map_write( stream_in, stream_out, function, *args )
 
 
-if __name__ == "__main__":
-
+def main():
+    global context
     error_codes = {"UnknownColor":1, "DuplicatedPalette":2, "MixedModes":3}
 
     usage = "A regular expression based formatter that color up an arbitrary text stream."
@@ -1108,3 +1108,6 @@ if __name__ == "__main__":
                     + " Check the following 'color:mode' pairs: %s." % e )
         sys.exit( error_codes["MixedModes"] )
 
+
+if __name__ == "__main__":
+    main()

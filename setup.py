@@ -16,9 +16,11 @@ packages = ['colout']
 
 requires = ['argparse; python_version < "2.7"', 'pygments', 'babel']
 
+setup_requires = ['setuptools_scm']
+
 setup(
     name='colout',
-    version='0.6',
+    use_scm_version=True,
     description='Color Up Arbitrary Command Output.',
     long_description=open('README.md').read(),
     author='nojhan',
@@ -28,6 +30,7 @@ setup(
     package_data={'': ['LICENSE', 'README.md']},
     package_dir={'colout': 'colout'},
     scripts=['bin/colout'],
+    setup_requires=setup_requires,
     include_package_data=True,
     install_requires=requires,
     license='GPLv3',

@@ -46,6 +46,7 @@ setup(
     packages=packages,
     package_data={'': ['LICENSE', 'README.md']},
     package_dir={'colout': 'colout'},
+    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*',
     setup_requires=setup_requires,
     include_package_data=True,
     install_requires=requires,

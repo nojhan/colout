@@ -42,6 +42,8 @@ context["styles"] = {
     "reverse": 7, "conceal": 8
 }
 
+error_codes = {"UnknownColor": 1, "DuplicatedPalette": 2, "MixedModes": 3, "UnknownLexer": 4}
+
 # Available color names in 8-colors mode.
 eight_colors = ["black","red","green","yellow","blue","magenta","cyan","white"]
 # Given in that order, the ASCII code is the index.
@@ -929,8 +931,6 @@ def write_all( as_all, stream_in, stream_out, function, *args ):
 
 def main():
     global context
-    error_codes = {"UnknownColor":1, "DuplicatedPalette":2, "MixedModes":3}
-
     usage = "A regular expression based formatter that color up an arbitrary text stream."
 
     #####################
@@ -1075,7 +1075,12 @@ def main():
         # if pygments
         elif as_source:
             logging.debug("asked for lexer: %s" % pattern.lower())
-            assert(pattern.lower() in context["lexers"])
+            if pattern.lower() not in context["lexers"]:
+                logging.error("Lexer %r is not one of %s" % (
+                    pattern,
+                    ", ".join(repr(lexer) for lexer in context["lexers"]),
+                ))
+                sys.exit(error_codes["UnknownLexer"])
             lexer = get_lexer_by_name(pattern.lower())
             # Python => 256 colors, python => 8 colors
             ask_256 = pattern[0].isupper()

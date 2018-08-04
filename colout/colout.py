@@ -1050,10 +1050,7 @@ def main():
         elif as_source:
             logging.debug("asked for lexer: %s" % pattern.lower())
             if pattern.lower() not in context["lexers"]:
-                logging.error("Lexer %r is not one of %s" % (
-                    pattern,
-                    ", ".join(repr(lexer) for lexer in context["lexers"]),
-                ))
+                logging.error("Lexer %r is not available. Run with \"--resources all\" to see the options.")
                 sys.exit(error_codes["UnknownLexer"])
             lexer = get_lexer_by_name(pattern.lower())
             # Python => 256 colors, python => 8 colors

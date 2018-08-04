@@ -14,7 +14,7 @@ if sys.argv[-1] == 'publish':
 
 packages = ['colout']
 
-requires = ['argparse; python_version < "2.7"', 'pygments', 'babel']
+requires = ['pygments', 'babel']
 
 setup_requires = ['setuptools_scm']
 

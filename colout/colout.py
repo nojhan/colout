@@ -7,7 +7,6 @@
 
 import os
 import re
-import six
 import sys
 import copy
 import glob

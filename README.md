@@ -1,13 +1,13 @@
 colout(1) -- Color Up Arbitrary Command Output
 ==============================================
 
-## SYNOPSIS
+## Synopsis
 
 `colout` [-h] [-r RESOURCE]
 
 `colout` [-g] [-c] [-l min,max] [-a] [-t] [-T DIR] [-P DIR] [-d COLORMAP] [-s] [-e CHAR] [-E CHAR] [--debug] PATTERN [COLOR(S) [STYLE(S)]]
 
-## DESCRIPTION
+## Description
 
 `colout` read lines of text stream on the standard input and output characters
 matching a given regular expression *PATTERN* in given *COLOR* and *STYLE*.
@@ -77,37 +77,28 @@ use the `-r` switch (see below).
 `colout` is released under the GNU Public License v3.
 
 
-## INSTALLATION
+## Installation
 
-    sudo python3 setup.py install
+The reccomended method is using [pipsi](https://github.com/mitsuhiko/pipsi)
+```
+pipsi install colout
+```
 
-and then soft link `/usr/local/bin/colout` to your colout.py under your installation
-directory, which is usually something like
+Another method is to use pip to install the package for the local user:
 
-    /usr/local/lib/python3/dist-packages/colout-0.1-py3.egg/colout/colout.py
+```
+pip install --user colout
+```
 
+There is also a PPA for Ubuntu 16.04 (Xenial)/18.04 (Bionic)
 
-## OTHER INSTALLATION METHOD
+```
+sudo add-apt-repository ppa:csaba-kertesz/random
+sudo apt-get update
+sudo apt-get/aptitude install colout
+```
 
-Pypi (the Python Package Index)
-
-    sudo pip install colout
-
-or
-
-    sudo easy_install colout
-
-Ubuntu PPA for 16.04 (Xenial)/18.04 (Bionic)
-
-    sudo add-apt-repository ppa:csaba-kertesz/random
-    sudo apt-get update
-    sudo apt-get/aptitude install colout
-
-Gentoo
-
-    sudo emerge colout
-
-## OPTIONS
+## Options
 
 * `-h`, `--help`:
   Show a help message and exit
@@ -164,7 +155,7 @@ Gentoo
   Debug mode: print what's going on internally, if you want to check what features are available.
 
 
-## REGULAR EXPRESSIONS
+## Regular expressions
 
 A regular expression (or _regex_) is a pattern that describes a set of strings
 that matches it.
@@ -174,15 +165,7 @@ that matches it.
 special characters that would be recognize by your shell.
 
 
-## DEPENDENCIES
-
-Recommended packages:
-
-* `pygments` for the source code syntax coloring
-* `babel` for a locale-aware number parsing
-
-
-## LIMITATIONS
+## Limitations
 
 Don't use nested groups or colout will duplicate the corresponding input text
 with each matching colors.
@@ -192,7 +175,7 @@ Using a default colormap that is incompatible with the special colormap's mode
 
 Color pairs ("foreground.background") work in 8-colors mode for simple coloring, but may fail with `--colormap`.
 
-## EXAMPLES
+## Examples
 
 ### Simple
 

@@ -20,6 +20,7 @@ import logging
 import argparse
 import importlib
 import functools
+import babel.numbers as bn
 
 # set the SIGPIPE handler to kill the program instead of
 # ending in a write error when a broken pipe occurs
@@ -292,35 +293,31 @@ def load_lexers():
     global context
     # load available pygments lexers
     lexers = []
+    global get_lexer_by_name
+    from pygments.lexers import get_lexer_by_name
+
+    global highlight
+    from pygments import highlight
+
+    global Terminal256Formatter
+    from pygments.formatters import Terminal256Formatter
+
+    global TerminalFormatter
+    from pygments.formatters import TerminalFormatter
+
+    from pygments.lexers import get_all_lexers
     try:
-        global get_lexer_by_name
-        from pygments.lexers import get_lexer_by_name
+        for lexer in get_all_lexers():
+            try:
+                lexers.append(lexer[1][0])
+            except IndexError:
+                logging.warning("cannot load lexer: %s" % lexer[1][0])
+                pass
+    except:
+        logging.warning("error while executing the pygment module, syntax coloring is not available")
 
-        global highlight
-        from pygments import highlight
-
-        global Terminal256Formatter
-        from pygments.formatters import Terminal256Formatter
-
-        global TerminalFormatter
-        from pygments.formatters import TerminalFormatter
-
-        from pygments.lexers import get_all_lexers
-    except ImportError:
-        logging.warning("the pygments module has not been found, syntax coloring is not available")
-    else:
-        try:
-            for lexer in get_all_lexers():
-                try:
-                    lexers.append(lexer[1][0])
-                except IndexError:
-                    logging.warning("cannot load lexer: %s" % lexer[1][0])
-                    pass
-        except:
-            logging.warning("error while executing the pygment module, syntax coloring is not available")
-
-        lexers.sort()
-        logging.debug("loaded %i lexers: %s" % (len(lexers), ", ".join(lexers)))
+    lexers.sort()
+    logging.debug("loaded %i lexers: %s" % (len(lexers), ", ".join(lexers)))
 
     context["lexers"] = lexers
 
@@ -411,23 +408,11 @@ def color_scale( name, text ):
     nb = "".join([i for i in filter(allowed.__contains__, text)])
 
     # interpret as decimal
-    # First, try with the babel module, if available
-    # if not, use python itself,
-    # if thoses fails, try to `eval` the string
-    # (this allow strings like "1/2+0.9*2")
     f = None
     try:
-        # babel is a specialized module
-        import babel.numbers as bn
-        try:
-            f = float(bn.parse_decimal(nb))
-        except bn.NumberFormatError:
-            pass
-    except ImportError:
-        try:
-            f = float(nb)
-        except ValueError:
-            pass
+        f = float(bn.parse_decimal(nb))
+    except bn.NumberFormatError:
+        pass
     if f is not None:
         # normalize with scale if it's a number
         f = (f - context["scale"][0]) / (context["scale"][1]-context["scale"][0])
@@ -832,11 +817,6 @@ def _args_parse(argv, usage=""):
             help="A regular expression")
 
     pygments_warn=" You can use a language name to activate syntax coloring (see `-r all` for a list)."
-    try:
-        import pygments
-    except ImportError:
-        pygments_warn=" (WARNING: python3-pygments is not available, \
-                install it if you want to be able to use syntax coloring)"
 
     parser.add_argument("color", metavar="COLOR", type=str, nargs='?',
             default="red",
@@ -856,12 +836,6 @@ def _args_parse(argv, usage=""):
                 (cycle the colors at each match)")
 
     babel_warn=" (numbers will be parsed according to your locale)"
-    try:
-        # babel is a specialized module
-        import babel.numbers
-    except ImportError:
-        babel_warn=" (WARNING: python3-babel is not available, install it \
-        if you want to be able to parse numbers according to your locale)"
 
     parser.add_argument("-l", "--scale", metavar="SCALE",
             help="When using the 'scale' colormap, parse matches as decimal numbers \

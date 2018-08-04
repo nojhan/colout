@@ -9,7 +9,7 @@ except ImportError:
     from distutils.core import setup
 
 if sys.argv[-1] == 'publish':
-    os.system('python3 setup.py sdist upload')
+    os.system('python setup.py bdist_wheel --universal upload')
     sys.exit()
 
 packages = ['colout']

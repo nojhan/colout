@@ -97,9 +97,9 @@ or
 
     sudo easy_install colout
 
-Ubuntu 13.04's ppa
+Ubuntu PPA for 16.04 (Xenial)/18.04 (Bionic)
 
-    sudo add-apt-repository ppa:ciici123/colout
+    sudo add-apt-repository ppa:csaba-kertesz/random
     sudo apt-get update
     sudo apt-get/aptitude install colout
 

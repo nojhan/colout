@@ -306,14 +306,17 @@ def load_lexers():
         from pygments.lexers import get_all_lexers
     except ImportError:
         logging.warning("the pygments module has not been found, syntax coloring is not available")
-        pass
     else:
-        for lexer in get_all_lexers():
-            try:
-                lexers.append(lexer[1][0])
-            except IndexError:
-                logging.warning("cannot load lexer: %s" % lexer[1][0])
-                pass
+        try:
+            for lexer in get_all_lexers():
+                try:
+                    lexers.append(lexer[1][0])
+                except IndexError:
+                    logging.warning("cannot load lexer: %s" % lexer[1][0])
+                    pass
+        except:
+            logging.warning("error while executing the pygment module, syntax coloring is not available")
+
         lexers.sort()
         logging.debug("loaded %i lexers: %s" % (len(lexers), ", ".join(lexers)))
 

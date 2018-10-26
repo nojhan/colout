@@ -20,7 +20,7 @@ setup(
     name='colout',
     version='0.6',
     description='Color Up Arbitrary Command Output.',
-    long_description=open('README.md').read(),
+    long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     author='nojhan',
     author_email='nojhan@nojhan.net',
     url='http://nojhan.github.com/colout/',

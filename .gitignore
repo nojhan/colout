@@ -2,3 +2,4 @@
 build/
 dist/
 colout.egg-info/
+.eggs/

@@ -164,6 +164,14 @@ that matches it.
 special characters that would be recognize by your shell.
 
 
+## Dependencies
+
+Necessary Python modules:
+
+* `pygments` for the source code syntax coloring
+* `babel` for a locale-aware number parsing
+
+
 ## Limitations
 
 Don't use nested groups or colout will duplicate the corresponding input text

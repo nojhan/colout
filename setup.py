@@ -39,7 +39,7 @@ setup(
     entry_points={
         'console_scripts': ['colout=colout.colout:main'],
     },
-    long_description=open('README.md').read(),
+    long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
     author='nojhan',
     author_email='nojhan@nojhan.net',
     url='http://nojhan.github.com/colout/',

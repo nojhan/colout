@@ -25,7 +25,7 @@ def theme(context):
         [ "^-- Configuring incomplete, errors occurred!", "red" ],
         [ "^--.*", performing ],
         # Errors
-        [ "CMake Error:", "red" ],
+        [ "CMake Error", "red" ],
         [ "CMake Warning", "yellow" ],
         # Scan
         [ "^(Scanning dependencies of target)(.*)$",

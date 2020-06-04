@@ -20,15 +20,18 @@ setup_requires = ['setuptools_scm']
 
 classifiers = """
 Environment :: Console
+Development Status :: 5 - Production/Stable
 License :: OSI Approved :: GNU General Public License v3 (GPLv3)
-Programming Language :: Python :: 2
-Programming Language :: Python :: 2.7
-Programming Language :: Python :: 3
-Programming Language :: Python :: 3.3
-Programming Language :: Python :: 3.4
+Operating System :: POSIX
+Operating System :: POSIX :: Linux
+Programming Language :: Python :: 3 :: Only
 Programming Language :: Python :: 3.5
 Programming Language :: Python :: 3.6
 Programming Language :: Python :: 3.7
+Programming Language :: Python :: 3.8
+Topic :: Utilities
+Topic :: Text Processing
+Topic :: Text Processing :: Filters
 """.strip().split('\n')
 
 setup(
@@ -40,13 +43,14 @@ setup(
         'console_scripts': ['colout=colout.colout:main'],
     },
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
+    long_description_content_type='text/markdown;variant=CommonMark',
     author='nojhan',
     author_email='nojhan@nojhan.net',
     url='http://nojhan.github.com/colout/',
     packages=packages,
     package_data={'': ['LICENSE', 'README.md']},
     package_dir={'colout': 'colout'},
-    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*',
+    python_requires='>=3.5',
     setup_requires=setup_requires,
     include_package_data=True,
     install_requires=requires,

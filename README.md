@@ -3,9 +3,9 @@ colout(1) -- Color Up Arbitrary Command Output
 
 ## Synopsis
 
-`colout` [-h] [-r RESOURCE]
+`colout [-h] [-r RESOURCE]`
 
-`colout` [-g] [-c] [-l min,max] [-a] [-t] [-T DIR] [-P DIR] [-d COLORMAP] [-s] [-e CHAR] [-E CHAR] [--debug] PATTERN [COLOR(S) [STYLE(S)]]
+`colout [-g] [-c] [-l min,max] [-a] [-t] [-T DIR] [-P DIR] [-d COLORMAP] [-s] [-e CHAR] [-E CHAR] [--debug] PATTERN [COLOR(S) [STYLE(S)]]`
 
 ## Description
 
@@ -25,10 +25,12 @@ rainbow, random, Random, Spectrum, spectrum, scale, Scale, hash, Hash, none, an
 RGB hexadecimal triplet (`#11aaff`, for example) or any number between 0 and 255.
 
 Available styles are: normal, bold, faint, italic, underline, blink,
-rapid\_blink, reverse, conceal or random (some styles may have no effect, depending
+rapid_blink, reverse, conceal or random (some styles may have no effect, depending
 on your terminal).
 
-In some case, you can indicate a foreground and a background color, by indicating boths colors separated by a period(for example: `red.blue`). You can also use this system to combine two styles (for example, for a bold style that also blinks: `bold.blink`).
+In some case, you can indicate a foreground and a background color, by indicating both colors
+separated by a period (for example: `red.blue`). You can also use this system to combine two styles
+(for example, for a bold style that also blinks: `bold.blink`).
 
 `rainbow` will cycle over a the default colormap at each matching pattern.
 `Rainbow` will do the same over the default colormap for the 256-colors mode
@@ -57,7 +59,7 @@ this special color on a large group, while interpreting only its numerical part.
 You can use the name of a syntax-coloring ["lexer"](http://pygments.org/docs/lexers/)
 as a color (for example: "Cpp", "ruby", "xml+django", etc.).
 
-If GIMP palettes files (\*.gpl) are available, you can also use their names as a
+If GIMP palettes files (*.gpl) are available, you can also use their names as a
 colormap (see the `-P` switch below).
 
 Note that the RGB colors (either the hex triplets or the palettes's colors) will
@@ -78,23 +80,24 @@ use the `-r` switch (see below).
 
 ## Installation
 
-The reccomended method is using [pipsi](https://github.com/mitsuhiko/pipsi)
-```
-pipsi install colout
+The recomended method is using pip to install the package for the local user:
+
+```console
+$ pip install --user colout
 ```
 
-Another method is to use pip to install the package for the local user:
-
+Another method is using [pipsi](https://github.com/mitsuhiko/pipsi)
+(_pipsi is no longer maintained, <https://github.com/mitsuhiko/pipsi/blob/db3e3fccbe4f8f9ed1104ed7293ec8fec6579efc/README.md#L3>_)
+```console
+$ pipsi install colout
 ```
-pip install --user colout
-```
 
-There is also a PPA for Ubuntu 16.04 (Xenial)/18.04 (Bionic)
+There is also a PPA for Ubuntu 16.04 (Xenial)/18.04 (Bionic) (@`0.6.1-3~dist7`, not actively maintained)
 
-```
-sudo add-apt-repository ppa:csaba-kertesz/random
-sudo apt-get update
-sudo apt-get/aptitude install colout
+```console
+$ sudo add-apt-repository ppa:csaba-kertesz/random
+$ sudo apt-get update
+$ sudo apt-get/aptitude install colout
 ```
 
 ## Options
@@ -109,8 +112,8 @@ sudo apt-get/aptitude install colout
   Use the given list of comma-separated colors as a colormap (cycle the colors at each match).
 
 * `-l min,max`, `--scale min,max`:
-  When using the 'scale' colormap, parse matches as decimal numbers (taking your locale into account)
-  or as arithmetic expression (like "1+2/0.9\*3") and apply the rainbow colormap linearly
+  When using the 'scale' colormap, parse matches as decimal numbers (taking your locale into
+  account) or as arithmetic expression (like "1+2/0.9*3") and apply the rainbow colormap linearly
   between the given min,max (0,100, by default).
 
 * `-a`, `--all`:
@@ -121,10 +124,10 @@ sudo apt-get/aptitude install colout
   Interpret PATTERN as a predefined theme (perm, cmake, g++, etc.).
 
 * `-T DIR`, `--themes-dir DIR`:
-  Search for additional themes (colout\_\*.py files) in this directory.
+  Search for additional themes (colout_*.py files) in this directory.
 
 * `-P DIR`, `--palettes-dir DIR`:
-  Search for additional palettes (\*.gpl files) in this directory.
+  Search for additional palettes (*.gpl files) in this directory.
 
 * `-d COLORMAP`, `--default COLORMAP`:
   When using special colormaps (`random`, `scale` or `hash`), use this COLORMAP instead of the default one.
@@ -180,7 +183,7 @@ with each matching colors.
 Using a default colormap that is incompatible with the special colormap's mode
 (i.e. number of colors) will end badly.
 
-Color pairs ("foreground.background") work in 8-colors mode for simple coloring, but may fail with `--colormap`.
+Color pairs (`foreground.background`) work in 8-colors mode for simple coloring, but may fail with `--colormap`.
 
 ## Examples
 
@@ -192,7 +195,7 @@ Color pairs ("foreground.background") work in 8-colors mode for simple coloring,
 * Color in bold violet home directories in _/etc/passwd_:
   `colout '/home/[a-z]+' 135 < /etc/passwd`
 
-* Color in yellow user/groups id, in bold green name and in bold red home directories in _/etc/passwd_:
+* Color in yellow user/groups id, in bold green name and in bold red home directories in `/etc/passwd`:
   `colout ':x:([0-9]+:[0-9]+):([^:]+).*(/home/[a-z]+)' yellow,green,red normal,bold < /etc/passwd`
 
 * Color in yellow file permissions with read rights for everyone:
@@ -256,11 +259,13 @@ Color pairs ("foreground.background") work in 8-colors mode for simple coloring,
 The following bash function color the output of any command with the
 cmake and g++ themes:
 
-    function cm()
-    {
-        set -o pipefail
-        $@ 2>&1  | colout -t cmake | colout -t g++
-    }
+```bash
+function cm()
+{
+    set -o pipefail
+    $@ 2>&1  | colout -t cmake | colout -t g++
+}
+```
 
 You then can use the `cm` alias as a prefix to your build command,
 for example: `cm make test`
@@ -329,32 +334,36 @@ Take a look at the `example.gdbinit` file distributed with colout for more gdb c
 ### Themes
 
 You can easily add your own theme to colout.
-A theme is basically a module with a function named `theme` that take the configuration context as an argument and
-return back the (modified) context and a list of triplets.
+A theme is basically a module with a function named `theme` that take the configuration context as
+an argument and return back the (modified) context and a list of triplets.
 Each triplet figures the same arguments than those of the command line interface.
 
-    def theme(context):
-        return context,[ [regexp, colors, styles] ]
+```python
+def theme(context):
+    return context,[ [regexp, colors, styles] ]
+```
 
-With the context dictionary at hand, you have access to the internal configuration of colout, you can thus change colormaps for
-special keywords, the scale, even the available colors, styles or themes.
+With the context dictionary at hand, you have access to the internal configuration of colout, you
+can thus change colormaps for special keywords, the scale, even the available colors, styles or
+themes.
 
-See the cmake theme for how to modify an existing colormap if (and only if) the user didn't ask for an
-alternative one.
-See the ninja theme for how to extend an existing theme with more regexps and a different configuration. 
+See the cmake them for how to modify an existing colormap if (and only if) the user didn't ask for an alternative one.
+See the ninja theme for how to extend an existing theme with more regexps and a different configuration.
 See the gcc theme for an example of how to use the localization of existing softwares to build translated regexp.
 
 
 ### Buffering
 
-Note that when you use colout within real time streams (like `tail -f X | grep Y | colout Z`) of commands,
-you may observe that the lines are printed by large chunks and not one by one, in real time.
+Note that when you use colout within real time streams (like `tail -f X | grep Y | colout Z`) of
+commands, you may observe that the lines are printed by large chunks and not one by one, in real
+time.
 This is not due to colout but to the buffering behavior of your shell.
+
 To fix that, use `stdbuf`, for example: `tail -f X | stdbuf -o0 grep Y | colout Z`.
 
 ## Authors
 
-* nojhan <nojhan@nojhan.net>: original idea, main developer, maintener.
+* nojhan <nojhan@nojhan.net>: original idea, main developer, maintainer.
 * Adrian Sadłocha <adrian.adek@gmail.com>
 * Alex Burka <aburka@seas.upenn.edu>
 * Brian Foley <bpfoley@gmail.com>
@@ -377,3 +386,4 @@ To fix that, use `stdbuf`, for example: `tail -f X | stdbuf -o0 grep Y | colout 
 * Piotr Staroszczyk <piotr.staroszczyk@get24.org>
 * Scott Lawrence <oz@lindenlab.com>
 * Xu Di <xudifsd@gmail.com>
+* https://github.com/stdedos: maintainer.

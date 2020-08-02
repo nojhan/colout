@@ -21,8 +21,6 @@ setup_requires = ['setuptools_scm']
 classifiers = """
 Environment :: Console
 License :: OSI Approved :: GNU General Public License v3 (GPLv3)
-Programming Language :: Python :: 2
-Programming Language :: Python :: 2.7
 Programming Language :: Python :: 3
 Programming Language :: Python :: 3.3
 Programming Language :: Python :: 3.4
@@ -46,7 +44,7 @@ setup(
     packages=packages,
     package_data={'': ['LICENSE', 'README.md']},
     package_dir={'colout': 'colout'},
-    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*',
+    python_requires='>=3.3',
     setup_requires=setup_requires,
     include_package_data=True,
     install_requires=requires,

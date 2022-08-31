@@ -1,7 +1,13 @@
 colout — Color Up Arbitrary Command Output
 ==========================================
 
-![Colout logo](https://raw.githubusercontent.com/nojhan/colout/master/colout_logo.svg")
+<p align="center">
+<img
+    width="640"
+    src="https://raw.githubusercontent.com/nojhan/colout/master/colout_logo.svg"
+    alt="Colout logo"
+/>
+</p>
 
 ## Synopsis
 

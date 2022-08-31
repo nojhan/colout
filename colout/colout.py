@@ -306,11 +306,21 @@ def load_lexers():
     from pygments.lexers import get_all_lexers
     try:
         for lexer in get_all_lexers():
-            try:
-                lexers.append(lexer[1][0])
-            except IndexError:
+            l = None
+            # If the tuple has one-word aliases
+            # (which are usually a better option than the long names
+            # for a command line argument).
+            if lexer[1]:
+                l = lexer[1][0] # Take the first one.
+            else:
+                assert(lexer[0])
+                l = lexer[0] # Take the long name, which should alway exists.
+            if not l:
                 logging.warning("cannot load lexer: %s" % lexer[1][0])
-                pass
+                pass # Forget about this lexer.
+            else:
+                assert(" " not in l) # Should be very rare, but probably a source of bugs.
+                lexers.append(l)
     except:
         logging.warning("error while executing the pygment module, syntax coloring is not available")
 

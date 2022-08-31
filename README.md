@@ -1,5 +1,7 @@
-colout(1) -- Color Up Arbitrary Command Output
-==============================================
+colout — Color Up Arbitrary Command Output
+==========================================
+
+![Colout logo](https://raw.githubusercontent.com/nojhan/colout/master/colout_logo.svg")
 
 ## Synopsis
 

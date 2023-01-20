@@ -26,7 +26,8 @@ def theme(context):
         [ "^--.*", performing ],
         # Errors
         [ "CMake Error", "red" ],
-        [ "CMake Warning", "yellow" ],
+        [ "CMake Warning", "magenta" ],
+        [ "CMake Deprecation Warning", "magenta" ],
         # Scan
         [ "^(Scanning dependencies of target)(.*)$",
           performing, "normal,bold" ],

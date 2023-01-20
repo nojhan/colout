@@ -2,6 +2,7 @@
 def theme(context):
     # CTest theme:
     passed="green"
+    notrun="yellow"
     notpassed="red"
 
     # If the user do not ask for his own colormap
@@ -13,5 +14,6 @@ def theme(context):
     return context,[
         # Passed
         [ "^\s*[0-9]+/[0-9]+ Test\s+#[0-9]+: (.*)\s+\.+\s+(Passed)", "blue,"+passed],
-        [ "^\s*[0-9]+/[0-9]+ Test\s+#[0-9]+: (.*)\s+\.+(\*{3}.*)\s+.*", "blue,"+notpassed]
+        [ "^\s*[0-9]+/[0-9]+ Test\s+#[0-9]+: (.*)\s+\.+(\*{3}Not Run.*)\s+.*", "blue,"+notrun],
+        [ "^\s*[0-9]+/[0-9]+ Test\s+#[0-9]+: (.*)\s+\.+(.*\*{3}.*)\s+.*", "blue,"+notpassed],
     ]

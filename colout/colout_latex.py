@@ -19,7 +19,8 @@ def theme(context):
             ["(Output written on) (.*) \(([0-9]+ pages), [0-9]+ bytes\).",
                 "blue,white,blue", "normal,bold,normal"],
             ["WARNING.*", "magenta", "normal"],
-            ["warning.*", "magenta", "normal"],
+            ["[wW]arning.*", "magenta", "normal"],
+            ["No pages of output", "red", "bold"],
 
             # BiBTeX
             ["^(I couldn't) (.*)", "red", "normal,bold"],

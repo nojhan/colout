@@ -41,7 +41,7 @@ context["styles"] = {
     "reverse": 7, "conceal": 8
 }
 
-error_codes = {"UnknownColor": 1, "DuplicatedPalette": 2, "MixedModes": 3, "UnknownLexer": 4}
+error_codes = {"UnknownColor": 1, "DuplicatedPalette": 2, "MixedModes": 3, "UnknownLexer": 4, "CustomSelectorError": 5}
 
 # Available color names in 8-colors mode.
 eight_colors = ["black","red","green","yellow","blue","magenta","cyan","white"]
@@ -109,6 +109,81 @@ class DuplicatedTheme(Exception):
 
 class MixedModes(Exception):
     pass
+
+class CustomSelectorError(Exception):
+    pass
+
+###############################################################################
+# Custom selectors for coloring
+###############################################################################
+class BaseSelector:
+    """
+    Base class for custom selectors. Should have color() and split() methods 
+    """
+    def split(self, sep):
+        """
+        Just emulate string.split()
+        """
+        return [self]
+
+    def color(self, text):
+        """
+        Override this method in custom classes
+        """
+        return "none"
+
+class PercentSelector(BaseSelector):
+    """
+    Allow to compare two numbers and select colors by percents range.
+    Numbers will be obtained as group(1) and group(2):
+        percents = int(group(1)*100/group(2))
+    If only one group is used - group(1) will be using as percents
+    """
+
+    def __init__(self, regex, groups=2, ranges=(30,80),  colors=("red", "yellow", "green") ):
+        """
+        groups - groups number. Allowed values is 1 or 2 (compare two digits)
+        range - color ranges in percents
+        colors - colors for each range
+        E.g.
+            range=(30,80) and color=("red", "yellow", "green")
+            <=30%  - red color
+            30-80% - yellow color
+            >=80%  - green color
+        """
+        if groups not in (1,2):
+            raise CustomSelectorError("PercentSelector: only 1 or 2 is possible as groups counter")
+        if len(ranges) + 1 != len(colors):
+            raise CustomSelectorError("PercentSelector: len(colors) should be equal to len(ranges)+1")
+        self.regex = re.compile(regex)
+        self.groups = groups
+        self.ranges = ranges
+        self.colors = colors
+
+    def color(self, text):
+        match = self.regex.match(text)
+        # What we should do if regex is not matching? 
+        if match is not None:
+            if self.groups == 2:
+                number1 = int(match.group(1))
+                number2 = int(match.group(2))
+                percent = number1*100/number2
+            else:
+                percent = int(match.group(1))
+            
+            cnt=0
+            for r in self.ranges:
+                if percent <= r:
+                    return self.colors[cnt]
+                else:
+                    cnt+=1
+            return self.colors[-1]
+        raise CustomSelectorError("PercentSelector: regex does not matched")
+
+context['Selectors'] = {
+    'base': BaseSelector,
+    'percent': PercentSelector,
+}
 
 
 ###############################################################################
@@ -651,6 +726,9 @@ def colorout(text, match, prev_end, color="red", style="normal", group=0):
     colored_text = text[prev_end:start]
     end = match.end(group)
 
+    if isinstance(color, BaseSelector):
+        color = color.color(match.group(group))
+
     colored_text += colorin(text[start:end], color, style)
     return colored_text, end
 
@@ -1089,6 +1167,9 @@ def main():
                     + " Check the following 'color:mode' pairs: %s." % e )
         sys.exit( error_codes["MixedModes"] )
 
+    except CustomSelectorError as e:
+        logging.error("Error occured in custom selector: %s" % e)
+        sys.exit( error_codes["CustomSelectorError"] )
 
 if __name__ == "__main__":
     main()

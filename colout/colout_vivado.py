@@ -2,7 +2,9 @@
 def theme(context):
     # Theme for coloring AMD/Xilinx Vivado IDE synthesis and implementation output
     return context,[
+        [ "^\s*\*+.+$", "green" ],
         [ "^#.+", "green" ],
+
         [ "^.+ Checksum: .+$", "green" ],
 
         [ "^.+Time \(s\).+", "green" ],

@@ -249,13 +249,13 @@ def hex_to_rgb(h):
 def load_themes( themes_dir):
     global context
     logging.debug("search for themes in: %s" % themes_dir)
-    os.chdir( themes_dir )
     sys.path.append( themes_dir )
 
     # load available themes
-    for f in glob.iglob("colout_*.py"):
-        module = ".".join(f.split(".")[:-1]) # remove extension
-        name = "_".join(module.split("_")[1:]) # remove the prefix
+    for f in glob.iglob(os.path.join(themes_dir, "colout_*.py")):
+        basename = os.path.basename(f) # Remove path.
+        module = os.path.splitext(basename)[0] # Remove extension.
+        name = "_".join(module.split("_")[1:]) # Remove the 'colout_' prefix.
         if name in context["themes"]:
             raise DuplicatedTheme(name)
         logging.debug("load theme %s" % name)
@@ -265,10 +265,9 @@ def load_themes( themes_dir):
 def load_palettes( palettes_dir, ignore_duplicates = True ):
     global context
     logging.debug("search for palettes in: %s" % palettes_dir)
-    os.chdir( palettes_dir )
 
     # load available colormaps (GIMP palettes format)
-    for p in glob.iglob("*.gpl"):
+    for p in glob.iglob(os.path.join(palettes_dir, "*.gpl")):
         try:
             name,palette = parse_gimp_palette(p)
         except Exception as e:
@@ -947,23 +946,17 @@ def main():
         # try additional directories if asked
         if palettes_dirs:
             for adir in palettes_dirs:
-                try:
-                    os.chdir( adir )
-                except OSError as e:
-                    logging.warning("cannot read palettes directory %s, ignore it" % adir)
-                    continue
-                else:
+                if os.path.isdir(adir):
                     load_palettes( adir )
+                else:
+                    logging.warning("cannot read palettes directory %s, ignore it" % adir)
 
         if themes_dirs:
             for adir in themes_dirs:
-                try:
-                    os.chdir( adir )
-                except OSError as e:
-                    logging.warning("cannot read themes directory %s, ignore it" % adir)
-                    continue
-                else:
+                if os.path.isdir(adir):
                     load_themes( adir )
+                else:
+                    logging.warning("cannot read themes directory %s, ignore it" % adir)
 
     except DuplicatedPalette as e:
         logging.error( "duplicated palette file name: %s" % e )

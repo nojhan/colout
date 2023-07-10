@@ -41,7 +41,7 @@ context["styles"] = {
     "reverse": 7, "conceal": 8
 }
 
-error_codes = {"UnknownColor": 1, "DuplicatedPalette": 2, "MixedModes": 3, "UnknownLexer": 4}
+error_codes = {"UnknownColor": 1, "DuplicatedPalette": 2, "MixedModes": 3, "UnknownLexer": 4, "UnknownResource": 5}
 
 # Available color names in 8-colors mode.
 eight_colors = ["black","red","green","yellow","blue","magenta","cyan","white"]
@@ -985,33 +985,49 @@ def main():
             return ", ".join(sorted(l, key=lambda s: s.lower()+s))
 
         # print("Available resources:")
+        resources_not_found = []
         for res in asked:
+            resource_found = False
+
             if "style" in res or "all" in res:
                 print("STYLES: %s" % join_sort(context["styles"]) )
+                resource_found = True
 
             if "color" in res or "all" in res:
                 print("COLORS: %s" % join_sort(context["colors"]) )
+                resource_found = True
 
             if "special" in res or "all" in res:
                 print("SPECIAL: %s" % join_sort(["random", "Random", "scale", "Scale", "hash", "Hash", "colormap"]) )
+                resource_found = True
 
             if "theme" in res or "all" in res:
                 if len(context["themes"]) > 0:
                     print("THEMES: %s" % join_sort(context["themes"].keys()) )
                 else:
                     print("NO THEME")
+                resource_found = True
 
             if "colormap" in res or "all" in res:
                 if len(context["colormaps"]) > 0:
                     print("COLORMAPS: %s" % join_sort(context["colormaps"]) )
                 else:
                     print("NO COLORMAPS")
+                resource_found = True
 
             if "lexer" in res or "all" in res:
                 if len(context["lexers"]) > 0:
                     print("SYNTAX COLORING: %s" % join_sort(context["lexers"]) )
                 else:
                     print("NO SYNTAX COLORING (check that python3-pygments is installed)")
+                resource_found = True
+
+            if not resource_found:
+                resources_not_found.append(res)
+
+        if resources_not_found:
+            logging.error( "Unknown resources: %s" % ", ".join(resources_not_found) )
+            sys.exit( error_codes["UnknownResource"] )
 
         sys.exit(0) # not an error, we asked for help
 

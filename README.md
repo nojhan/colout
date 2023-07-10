@@ -11,7 +11,7 @@ colout — Color Up Arbitrary Command Output
 
 ## Synopsis
 
-`colout [-h] [-r RESOURCE]`
+`colout [-h] [-r [RESOURCE]]`
 
 `colout [-g] [-c] [-l min,max] [-a] [-t] [-T DIR] [-P DIR] [-d COLORMAP] [-s] [-e CHAR] [-E CHAR] [--debug] PATTERN [COLOR(S) [STYLE(S)]]`
 
@@ -145,10 +145,10 @@ $ sudo apt-get/aptitude install colout
   Also, external palettes are converted from RGB to 256-ANSI and will thus not work if you use
   them as default colormaps for a 8-colors mode special color.
 
-* `-r TYPE(S)`, `--resources TYPE(S)`:
+* `-r [TYPE(S)]`, `--resources [TYPE(S)]`:
   Print the names of available resources. Use a comma-separated list of resources names
   (styles, colors, special, themes, palettes, colormaps or lexers),
-  use 'all' to print everything.
+  use 'all' (or no argument) to print all resources.
 
 * `-s`, `--source`:
   Interpret PATTERN as source code readable by the Pygments library. If the first letter of PATTERN

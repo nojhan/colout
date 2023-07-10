@@ -889,6 +889,10 @@ def _args_parse(argv, usage=""):
     parser.add_argument("--debug", action="store_true",
             help="Debug mode: print what's going on internally, useful if you want to check what features are available.")
 
+    # HACK: Mock up "--resources ALL" if just "--resources" on command line
+    if (len(sys.argv) == 2 and (sys.argv[1] in ["-r", "--resources"])):
+        sys.argv.append("ALL")
+
     args = parser.parse_args()
 
     return args.pattern[0], args.color, args.style, args.groups, \

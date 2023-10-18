@@ -679,6 +679,7 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False, sep_lis
     """
     global context
     global debug
+    global target_groups
 
     if not debug:
         regex = re.compile(pattern)
@@ -718,7 +719,11 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False, sep_lis
             # Note that match.groups returns a tuple (thus being indexed in [0,n[),
             # but that match.start(0) refers to the whole match, the groups being indexed in [1,n].
             # Thus, we need to range in [1,n+1[.
-            for group in range(1, nb_groups+1):
+
+            if (target_groups == None):
+                target_groups = range(1, nb_groups+1)
+
+            for group in target_groups:
                 # If a group didn't match, there's nothing to color
                 if match.group(group) is not None:
                     partial, end = colorout(text, match, end, group_colors[group-1], group_styles[group-1], group)
@@ -835,6 +840,11 @@ def _args_parse(argv, usage=""):
             help="For color maps (random, rainbow, etc.), iterate over matching groups \
                 in the pattern instead of over patterns")
 
+    parser.add_argument("-tg", "--target-groups", metavar="TARGET_GROUPS", nargs='+', type=int,
+            help="Manually specify the matching groups to iterate over. Use this to capture \
+                the outermost of a set of nested groups, or when some groups are intended for \
+                pattern matching only, not coloring.")
+
     parser.add_argument("-c", "--colormap", action="store_true",
             help="Interpret the given COLOR comma-separated list of colors as a colormap \
                 (cycle the colors at each match)")
@@ -895,7 +905,7 @@ def _args_parse(argv, usage=""):
 
     args = parser.parse_args()
 
-    return args.pattern[0], args.color, args.style, args.groups, \
+    return args.pattern[0], args.color, args.style, args.groups, args.target_groups, \
            args.colormap, args.theme, args.source, args.all, args.scale, args.debug, args.resources, args.palettes_dir, \
            args.themes_dir, args.default, args.sep_list, args.sep_pair
 
@@ -913,12 +923,13 @@ def write_all( as_all, stream_in, stream_out, function, *args ):
 
 def main():
     global context
+    global target_groups
     usage = "A regular expression based formatter that color up an arbitrary text stream."
 
     #####################
     # Arguments parsing #
     #####################
-    pattern, color, style, on_groups, as_colormap, as_theme, as_source, as_all, myscale, \
+    pattern, color, style, on_groups, target_groups, as_colormap, as_theme, as_source, as_all, myscale, \
     debug, resources, palettes_dirs, themes_dirs, default_colormap, sep_list, sep_pair \
         = _args_parse(sys.argv, usage)
 

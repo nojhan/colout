@@ -699,7 +699,10 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False, sep_lis
             colored_text += partial
 
         else:
-            nb_groups = len(match.groups())
+            if (target_groups == None):
+                nb_groups = len(match.groups())
+            else:
+                nb_groups = len(target_groups)
 
             # Build a list of colors that match the number of grouped,
             # if there is not enough colors, duplicate the last one.
@@ -723,10 +726,10 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False, sep_lis
             if (target_groups == None):
                 target_groups = range(1, nb_groups+1)
 
-            for group in target_groups:
+            for index, group in enumerate(target_groups):
                 # If a group didn't match, there's nothing to color
                 if match.group(group) is not None:
-                    partial, end = colorout(text, match, end, group_colors[group-1], group_styles[group-1], group)
+                    partial, end = colorout(text, match, end, group_colors[index], group_styles[index], group)
                     colored_text += partial
 
     # Append the remaining part of the text, if any.

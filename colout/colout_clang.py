@@ -35,17 +35,17 @@ def theme(context):
 
     return context,[
         # Command line
-        [ "[/\s]([cg]\+\+-*[0-9]*\.*[0-9]*)", "white", "bold" ],
-        [ "\s(\-D)(\s*[^\s]+)", "none,green", "normal,bold" ],
-        [ "\s(-g)", "green", "normal" ],
-        [ "\s-O[0-4]", "green", "normal" ],
-        [ "\s-[Wf][^\s]*", "magenta", "normal" ],
-        [ "\s-pedantic", "magenta", "normal" ],
-        [ "\s(-I)(/*[^\s]+/)([^/\s]+)", "none,blue", "normal,normal,bold" ],
-        [ "\s(-L)(/*[^\s]+/)([^/\s]+)", "none,cyan", "normal,normal,bold" ],
-        [ "\s(-l)([^/\s]+)", "none,cyan", "normal,bold" ],
-        [ "\s-[oc]", "red", "bold" ],
-        [ "\s(-+std(?:lib)?)=?([^\s]+)", "red", "normal,bold" ],
+        [ r"[/\s]([cg]\+\+-*[0-9]*\.*[0-9]*)", "white", "bold" ],
+        [ r"\s(\-D)(\s*[^\s]+)", "none,green", "normal,bold" ],
+        [ r"\s(-g)", "green", "normal" ],
+        [ r"\s-O[0-4]", "green", "normal" ],
+        [ r"\s-[Wf][^\s]*", "magenta", "normal" ],
+        [ r"\s-pedantic", "magenta", "normal" ],
+        [ r"\s(-I)(/*[^\s]+/)([^/\s]+)", "none,blue", "normal,normal,bold" ],
+        [ r"\s(-L)(/*[^\s]+/)([^/\s]+)", "none,cyan", "normal,normal,bold" ],
+        [ r"\s(-l)([^/\s]+)", "none,cyan", "normal,bold" ],
+        [ r"\s-[oc]", "red", "bold" ],
+        [ r"\s(-+std(?:lib)?)=?([^\s]+)", "red", "normal,bold" ],
 
         # Important messages
         [ _("error: "), "red", "bold" ],
@@ -53,7 +53,7 @@ def theme(context):
         [ _("warning: "), "magenta", "bold" ],
         [ _("undefined reference to "), "red", "bold" ],
         # [-Wflag]
-        [ "\[-W.*\]", "magenta"],
+        [ r"\[-W.*\]", "magenta"],
 
         # Highlight message start:
         #   path   file   ext     : line   :  col     …

@@ -36,20 +36,20 @@ def theme(context):
         [ "^(Linking .* )(library|executable) (.*)$",
           untimed, "normal,normal,bold" ],
         # [percent] Creating something
-        [ "^\[\s*[0-9/]+%?\]\s(.*Creating.*)$",
+        [ r"^\[\s*[0-9/]+%?\]\s(.*Creating.*)$",
           performing, "normal" ],
         # [percent] Built
-        [ "^\[\s*[0-9/]+%?\]\s(Built target)(\s.*)$",
+        [ r"^\[\s*[0-9/]+%?\]\s(Built target)(\s.*)$",
           performed, "normal,bold" ],
         # [percent] Building
-        [ "^\[\s*[0-9/]+%?\]\s(Building \w* object)\s+(.*)(\.dir)(.*/)([-\w]+).c.*.o$",
+        [ r"^\[\s*[0-9/]+%?\]\s(Building \w* object)\s+(.*)(\.dir)(.*/)([-\w]+).c.*.o$",
             performing+","+performing+","+performing+",Hash,"+performing, "normal,normal,normal,normal,bold"],
         # [percent] Generating
-        [ "^\[\s*[0-9/]+%?\]\s(Generating)(\s+.*)$",
+        [ r"^\[\s*[0-9/]+%?\]\s(Generating)(\s+.*)$",
             performing, "normal,bold"],
         # make errors
-        [ "make\[[0-9]+\].*", "yellow"],
-        [ "(make: \*\*\* \[.+\] )(.* [0-9]+)", "red", "normal,bold"],
+        [ r"make\[[0-9]+\].*", "yellow"],
+        [ r"(make: \*\*\* \[.+\] )(.* [0-9]+)", "red", "normal,bold"],
         # progress percentage (make)
-        [ "^(\[\s*[0-9]+%\])","Scale" ]
+        [ r"^(\[\s*[0-9]+%\])","Scale" ]
     ]

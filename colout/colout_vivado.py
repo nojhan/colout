@@ -2,16 +2,16 @@
 def theme(context):
     # Theme for coloring AMD/Xilinx Vivado IDE synthesis and implementation output
     return context,[
-        [ "^\s*\*+.+$", "green" ],
+        [ r"^\s*\*+.+$", "green" ],
         [ "^#.+", "green" ],
 
         [ "^.+ Checksum: .+$", "green" ],
 
-        [ "^.+Time \(s\).+", "green" ],
-        [ "^Time \(s\).+", "green" ],
+        [ r"^.+Time \(s\).+", "green" ],
+        [ r"^Time \(s\).+", "green" ],
 
-        [ "Estimated Timing Summary \|.+\|.+\|", "cyan", "bold" ],
-        [ "Intermediate Timing Summary \|.+\|.+\|", "cyan", "bold" ],
+        [ r"Estimated Timing Summary \|.+\|.+\|", "cyan", "bold" ],
+        [ r"Intermediate Timing Summary \|.+\|.+\|", "cyan", "bold" ],
 
         [ "^INFO:", "white", "bold" ],
         [ "^WARNING:.+$", "yellow" ],

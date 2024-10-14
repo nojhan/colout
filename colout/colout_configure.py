@@ -11,6 +11,6 @@ def theme(context):
             ["^(config.status:) (creating|linking)(.*)",  "cyan,blue","normal,normal,bold"],
             ["^(config.status:) (executing )(.*)", "cyan,green","normal,normal,bold"],
             ["^(config.status:) (.*)(is unchanged)", "cyan,green","normal,normal,bold"],
-            ["^\s*(Build.*)(yes)$","green", "normal,bold"],
-            ["^\s*(Build.*)(no)$","yellow", "normal,bold"],
+            [r"^\s*(Build.*)(yes)$","green", "normal,bold"],
+            [r"^\s*(Build.*)(no)$","yellow", "normal,bold"],
         ]

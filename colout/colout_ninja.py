@@ -11,9 +11,9 @@ def theme(context):
     context["scale"] = (0,1)
 
     # Link (ninja)
-    th.append( [ "^\[[0-9/]+\]\s?(Linking .* )(library|executable) (.*/)*(.+(\.[aso]+)*)$",
+    th.append( [ r"^\[[0-9/]+\]\s?(Linking .* )(library|executable) (.*/)*(.+(\.[aso]+)*)$",
           "blue", "normal,normal,bold" ] )
     # progress percentage (ninja)
-    th.append( [ "^(\[[0-9]+/[0-9]+\])","Scale" ] )
+    th.append( [ r"^(\[[0-9]+/[0-9]+\])","Scale" ] )
 
     return context,th

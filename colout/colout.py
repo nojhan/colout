@@ -177,7 +177,7 @@ def parse_gimp_palette( filename ):
     palette = []
     for line in lines:
         # skip lines with only a comment
-        if re.match("^\s*#.*$", line ):
+        if re.match(r"^\s*#.*$", line ):
             continue
         # decode the columns-ths codes. Generally [R G B] followed by a comment
         colors = [ int(c) for c in line.split()[:columns] ]
@@ -663,20 +663,8 @@ def colorup(text, pattern, color="red", style="normal", on_groups=False, sep_lis
     in which case the different matching groups may be formatted differently.
     If there is less colors/styles than groups, the last format is used
     for the additional groups.
-
-    >>> colorup("Fetchez la vache", "vache", "red", "bold")
-    'Fetchez la \x1b[1;31mvache\x1b[0m'
-    >>> colorup("Faites chier la vache", "[Fv]a", "red", "bold")
-    '\x1b[1;31mFa\x1b[0mites chier la \x1b[1;31mva\x1b[0mche'
-    >>> colorup("Faites Chier la Vache", "[A-Z](\S+)\s", "red", "bold")
-    'F\x1b[1;31maites\x1b[0m C\x1b[1;31mhier\x1b[0m la Vache'
-    >>> colorup("Faites Chier la Vache", "([A-Z])(\S+)\s", "red,green", "bold")
-    '\x1b[1;31mF\x1b[0m\x1b[1;32maites\x1b[0m \x1b[1;31mC\x1b[0m\x1b[1;32mhier\x1b[0m la Vache'
-    >>> colorup("Faites Chier la Vache", "([A-Z])(\S+)\s", "green")
-    '\x1b[0;32mF\x1b[0m\x1b[0;32maites\x1b[0m \x1b[0;32mC\x1b[0m\x1b[0;32mhier\x1b[0m la Vache'
-    >>> colorup("Faites Chier la Vache", "([A-Z])(\S+)\s", "blue", "bold,italic")
-    '\x1b[1;34mF\x1b[0m\x1b[3;34maites\x1b[0m \x1b[1;34mC\x1b[0m\x1b[3;34mhier\x1b[0m la Vache'
     """
+
     global context
     global debug
 

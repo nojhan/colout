@@ -88,7 +88,7 @@ use the `-r` switch (see below).
 
 ## Installation
 
-The recomended method is using pip to install the package for the local user:
+The recommended method is using pip to install the package for the local user:
 
 ```console
 $ pip install --user colout

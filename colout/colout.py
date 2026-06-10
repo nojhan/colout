@@ -425,10 +425,13 @@ def color_scale( name, text ):
         f = (f - context["scale"][0]) / (context["scale"][1]-context["scale"][0])
     else:
         # interpret as float between 0 and 1 otherwise
-        f = eval(nb)
+                try:
+                    f = float(nb)
+                except ValueError:
+                    f = None
 
     # if out of scale, do not color
-    if f < 0 or f > 1:
+    if f is None or f < 0 or f > 1:
         return None
 
     # normalize and scale over the nb of colors in cmap

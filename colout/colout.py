@@ -278,6 +278,9 @@ def load_palettes( palettes_dir, ignore_duplicates = True ):
                 logging.warning("ignore this duplicated palette name: %s" % name)
             else:
                 raise DuplicatedPalette(name)
+        if not palette:
+            logging.warning("ignore empty palette: %s" % name)
+            continue
         # Convert the palette to ANSI
         ansi_palette = [ rgb_to_ansi(r,g,b) for r,g,b in palette ]
         # Compress it so that there isn't two consecutive identical colors
